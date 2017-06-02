@@ -138,7 +138,7 @@ class World:
         self.Q = None      # Queues at stations [list of list]
         self.H = None      # how long wait at station (each passenger classed by station) [list of list]
         self.T = None      # List that says at what iteration ppl got in the bus
-        self.P = None       # people
+        self.P = None      # List of people
         self.i = None      # Iteration number (i.e. time)
         self.NEWS = [None] # World trajectory record [list of tuple/None]
         self.rewind()

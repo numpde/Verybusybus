@@ -138,7 +138,7 @@ class World:
         self.Q = None      # Queues at stations [list of list]
         self.H = None      # how long wait at station (each passenger classed by station) [list of list]
         self.T = None      # List that says at what iteration ppl got in the bus
-        self.P = None       # people
+        self.P = None      # List of people
         self.i = None      # Iteration number (i.e. time)
         self.NEWS = [None] # World trajectory record [list of tuple/None]
         self.rewind()
@@ -182,11 +182,11 @@ class World:
         m is an element of M, see move(...)
         '''
             
-		self.P[self.H[self.b][m]][3] = self.i
-		self.B.append(self.Q[self.b][m])
-		self.T.append(self.H[self.b][m])
-		self.Q[self.b].pop(m)
-		self.H[self.b].pop(m)
+        self.P[self.H[self.b][m]][3] = self.i
+        self.B.append(self.Q[self.b][m])
+        self.T.append(self.H[self.b][m])
+        self.Q[self.b].pop(m)
+        self.H[self.b].pop(m)
     
     def move(self, M, s):
         """
@@ -221,19 +221,19 @@ class World:
         # Passengers unmount
         self.B = [p for p in self.B if p != self.b]
         
-		# Record passenger arrival time
-		for i in self.T:
-			if (self.P[i][1] == self.b):
-				self.P[i][4] = self.i
-		self.T = [i for i in self.T if self.P[i][1] != self.b]
+        # Record passenger arrival time
+        for i in self.T:
+            if (self.P[i][1] == self.b):
+                self.P[i][4] = self.i
+        self.T = [i for i in self.T if self.P[i][1] != self.b]
 
         assert self.news() is not None
         # New person arrives at "a" with destination "b"
         a, b = self.news()
         # Queue in the new person
         self.Q[a].append(b)
-		self.H[a].append(len(self.P))
-		self.P.append([a, b, self.i, None, None])
+        self.H[a].append(len(self.P))
+        self.P.append([a, b, self.i, None, None])
 
     def get_w(self):
         """
@@ -330,9 +330,9 @@ class Profiler:
         # w = average over time
         self.w = None
 
-		self.hres = [] #list of persons waiting time (iterations) 
-		self.tres = [] #list of persons traveling time (iterations) 
-		self.pres = [] #list of persons total time (iterations) divided by iteration distance 
+        self.hres = [] #list of persons waiting time (iterations) 
+        self.tres = [] #list of persons traveling time (iterations) 
+        self.pres = [] #list of persons total time (iterations) divided by iteration distance 
     
         assert 0 < self.I <= 1e9
 
@@ -345,13 +345,13 @@ class Profiler:
             self.W.append(wrd.get_w())
 
         assert len(self.W)
-		for p in wrd.P :
-			(a, b, i, m, d) = p
-			if (d is None) : continue
-			self.pres.append((d-i)/min(abs(b-a),wrd.N-b+a,wrd.N-a+b))
-			#self.pres.append(d-i)
-			self.hres.append((m-i))
-			self.tres.append(d-m)
+        for p in wrd.P :
+            (a, b, i, m, d) = p
+            if (d is None) : continue
+            self.pres.append((d-i)/min(abs(b-a),wrd.N-b+a,wrd.N-a+b))
+            #self.pres.append(d-i)
+            self.hres.append((m-i))
+            self.tres.append(d-m)
         self.w = mean(self.W)
 
 # Helper function
@@ -369,7 +369,7 @@ def get_name(nav):
 
 def main():
     """
-    Main
+    Mainf
     """
 
     #  Section 1: Initialize candidates
@@ -456,7 +456,7 @@ def main():
     """
     import matplotlib.pyplot as plt
     for s in S :
-    	plt.plot(s, '-x')
+        plt.plot(s, '-x')
     plt.yscale('log')
     plt.xlabel('Round')
     plt.ylabel('Score (less is better)')

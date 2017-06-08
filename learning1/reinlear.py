@@ -1,0 +1,517 @@
+#!/usr/bin/env python3
+
+# Author: RA
+
+import tensorflow as tf
+
+# Disable / Restore sys.stderr(..)
+import sys, os
+def stop_stderr(): sys.stderr = open(os.devnull, 'w')
+def open_stderr(): sys.stderr = sys.__stderr__
+
+stop_stderr()
+from keras import backend as keras_backend
+open_stderr()
+
+
+import main
+import random
+import matplotlib.pyplot as plt
+import numpy as np
+
+from keras.models       import Sequential, load_model
+from keras.optimizers   import Adam
+from keras.regularizers import WeightRegularizer
+from keras.layers       import Dense, Dropout
+
+from main import mean
+
+
+class AI_GREEDY1:
+    """
+    'Modestly greedy' strategy
+    """
+    name = "Modestly greedy'"
+
+    def __init__(self, C, N):
+        self.C = C
+        self.N = N
+        self.s = +1
+
+    def step(self, b, B, Q):
+        """
+        Calculates one step.
+        """
+        # Number of passengers to board
+        n = min(len(Q[b]), self.C - len(B))
+        # Passenger selection from Q[b]
+        M = list(range(n))
+
+        # No passengers? 
+        if (not B) and (not M):
+            return [], +1
+
+        # Next passenger's destination
+        if len(B):
+            t = B[0]
+        else:
+            t = Q[b][M[0]]
+
+        # Destination relative to the current position
+        t = self.N - 2 * ((t - b + self.N) % self.N)
+
+        # Move towards that destination (modify default direction)
+        self.s = (+1) if (t > 0) else (-1)
+
+        return M, self.s
+
+# List-to-matrix conversion
+# to feed to neural network
+class Matricize :
+    def __init__(self, C, N, b, B, Q) :
+        self.C = C
+        self.N = N
+        self.b = b
+        self.B = B
+        self.Q = Q
+        self.QQ = self.cQ()
+        self.BB = self.cB()
+    
+    # Position relative to the current bus position
+    # (the result is in the interval [0, N-1])
+    def circ(self, x) :
+        return (x - self.b) % self.N
+    
+    def cQ(self) :
+        # Represent the people waiting in Q in a table QQ
+        # Source = location rel to bus position 
+        # Target = destination rel to bus position
+        # Both in the interval [0, N-1]
+        # Current bus location shifted to 0
+        # Note: this erases the arrival order in Q.
+        # The source-target matrix is defined as:
+        # QQ[s][t] is the number of people 
+        # waiting at s and aiming to go to t
+        # (where 0 is the current bus position)
+        QQ = np.zeros((self.N, self.N))
+        for (s, q) in enumerate(self.Q):
+            for t in q:
+                QQ[self.circ(s)][self.circ(t)] += 1
+        return QQ
+
+    def cB(self) :
+        # Represent the people on the bus as a vector BB
+        # Compute the target vector of passengers on the bus:
+        # BB[n] = target of n-th passenger
+        # (where 0 is the current bus position)
+        # Note: 0 is not a valid passenger destination
+        BB = np.zeros((self.C,)) 
+        for (n, t) in enumerate(self.B):
+            BB[n] = self.circ(t)
+        return BB
+
+    def cm(self, m) :
+        # m is index into Q[b] indicating
+        # the person to board the bus.
+        # NOTE: people are boarded one by one.
+        MM = np.zeros(self.N)
+        MM[self.circ(self.Q[self.b][m])] = 1
+        return MM
+
+    def cs(self, s) :
+        # Direction of travel as a class:
+        #   s =  0  =>  ss[0] = 1
+        #   s =  1  =>  ss[1] = 1
+        #   s = -1  =>  ss[2] = 1
+        ss = np.zeros(3)
+        ss[s % 3] = 1
+        return ss
+
+
+class ExperienceBuffer :
+    def __init__(self, wrd) :
+        self.wrd = wrd
+        self.X = {'S': [], 'A': [], 'R': []}
+    
+    # Record state
+    def RecState(self, b, B, Q) :
+        self.X['S'].append({'b': b, 'B': B, 'Q': Q})
+        return b, B, Q
+    
+    def _RecAction_Board(self, m) :
+        # Finished boarding / Forward = False
+        self.X['A'].append({'f': False, 'm': m})
+    
+    def _RecAction_Drive(self, s) :
+        # Finished boarding / Forward = True
+        self.X['A'].append({'f': True, 's': s})
+    
+    # Record action
+    def RecAction(self, M, s) :
+        # Board people ONE BY ONE
+        for m in sorted(M, reverse=True) : 
+            self._RecAction_Board(m)
+            self.RecReward(0)
+            self.wrd.board1(m)
+            self.RecState(*self.wrd.look())
+            
+        # Record the intention to move bus
+        self._RecAction_Drive(s)
+        
+        return [], s
+    
+    # Record reward
+    def RecReward(self, r) :
+        self.X['R'].append(r)
+        return r
+
+
+class AI_MY:
+    """
+    AI class
+    """
+    name = "ReinLear"
+
+    def __init__(self, C, N):
+        self.C = C
+        self.N = N
+        self.f_model = None
+        self.init_model()
+    
+    def init_model(self) :
+        try :
+            self.f_model = load_model('NN0-f.h5')
+            print("ReinLear load f_model OK")
+        except :
+            print("ReinLear building f_model")
+            f_model = Sequential()
+            f_model.add(Dense(24, input_dim=(self.C + self.N**2), 
+                              activation='relu', init='uniform', 
+                              W_regularizer=WeightRegularizer(l1=0, l2=0.1)))
+            f_model.add(Dense(1, init='normal', activation='sigmoid'))
+            self.f_model = f_model
+        
+        try :
+            self.s_model = load_model('NN0-s.h5')
+            print("ReinLear load s_model OK")
+        except :
+            print("ReinLear building s_model")
+            s_model = Sequential()
+            s_model.add(Dense(256, input_dim=(self.C + self.N**2), 
+                              activation='relu', init='uniform', 
+                              W_regularizer=WeightRegularizer(l1=0, l2=0.001)))
+            s_model.add(Dense(128,
+                              activation='relu', init='uniform', 
+                              W_regularizer=WeightRegularizer(l1=0, l2=0.001)))
+            s_model.add(Dense(64,
+                              activation='relu', init='uniform', 
+                              W_regularizer=WeightRegularizer(l1=0, l2=0.001)))
+            s_model.add(Dense(32,
+                              activation='relu', init='uniform', 
+                              W_regularizer=WeightRegularizer(l1=0, l2=0.001)))
+            s_model.add(Dense(16,
+                              activation='relu', init='uniform', 
+                              W_regularizer=WeightRegularizer(l1=0, l2=0.001)))
+            s_model.add(Dense(3, init='normal', activation='softmax'))
+            self.s_model = s_model
+        
+        try :
+            self.m_model = load_model('NN0-m.h5')
+            print("ReinLear load m_model OK")
+        except :
+            print("ReinLear building m_model")
+            m_model = Sequential()
+            m_model.add(Dense(256, input_dim=(self.C + self.N**2), 
+                              activation='relu', init='uniform', 
+                              W_regularizer=WeightRegularizer(l1=0, l2=0.0001)))
+            m_model.add(Dense(128,
+                              activation='relu', init='uniform', 
+                              W_regularizer=WeightRegularizer(l1=0, l2=0.0001)))
+            m_model.add(Dense(64,
+                              activation='relu', init='uniform', 
+                              W_regularizer=WeightRegularizer(l1=0, l2=0.0001)))
+            m_model.add(Dense(64,
+                              activation='relu', init='uniform', 
+                              W_regularizer=WeightRegularizer(l1=0, l2=0.0001)))
+            m_model.add(Dense(64,
+                              activation='relu', init='uniform', 
+                              W_regularizer=WeightRegularizer(l1=0, l2=0.0001)))
+            m_model.add(Dense(self.N, init='glorot_normal', activation='softmax'))
+            self.m_model = m_model
+        
+
+    def step(self, b, B, Q):
+        """
+        Note: b, B, Q are OK to modify
+        """
+        
+        Q[b].sort()
+        M0 = list(range(len(Q[b])))
+        M = []
+        while True :
+            # Current state
+            C = Matricize(self.C, self.N, b, B, Q)
+            X = np.asarray([list(C.BB) + list(C.QQ.flatten())])
+            
+            # Cannot board any more people: move forward
+            if (len(B) >= self.C) : break
+        
+            # Suggestion by NN: move forward?
+            f = self.f_model.predict(X)
+            
+            # DEBUG
+            #(M1, _) = self.greedy.step(b, B, Q)
+            #print((len(M1) > 0), " should agree with ", (f < 0.5))
+            
+            # f_model suggests to move forward
+            if (f > 0.5) : break
+
+            # Get index of the next person to board
+            
+            # Suggestion by NN: who to board?
+            t = np.argmax(self.m_model.predict(X))
+            t = (t + b) % self.N
+            # Check if the suggestion is valid
+            if (not t in Q[b]) : break
+            m = Q[b].index(t)
+            
+            # Suggestion by AI_GREEDY
+            #(M1, _) = self.greedy.step(b, B, Q)
+            ## AI_GREEDY does not want to board anyone
+            #if (not M1) : break
+            #m = M1[0] # With greedy, always m==0
+            
+            #print(b, Q[b], m)
+            #print(np.round(self.m_model.predict(X), decimals=2), C.QQ[0], t, m1)
+        
+            # Collect original index
+            M.append(M0.pop(m))
+            # Remove from the (virtual) queue, and board onto (virtual) bus
+            B.append(Q[b].pop(m))
+        
+        # Suggestion by AI_GREEDY
+        # Ask greedy where to go with the new B, Q
+        #(_, s) = self.greedy.step(b, B, Q)
+        
+        # Suggestion by NN
+        s = [0, 1, -1][np.argmax(self.s_model.predict(X))]
+        
+        #print(b, B0, B, s)
+        
+        # Print the stations
+        #Qb = [q[:] for q in Q]; Qb[b].append('b'); print(B, Qb, s)
+        
+        return M, s
+    
+    def lesson(self, wrd_look, nav_teacher) :
+        #print(wrd_look, R)
+        pass
+    
+    def curriculum(self, wrd, nav_teacher, XB) :
+        #self.train_f(XB)
+        #self.train_s(XB)
+        #self.train_m(XB)
+        self.train_RL(XB)
+    
+    #def train_f(self, XB) :
+        ## Construct a neural network "f_model"
+        ## that decides whether to aquire passengers
+        ## or to allow the bus to move
+        
+        #model = self.f_model
+        
+        #X = []
+        #Y = []
+        #for i in range(len(XB.X['S'])) :
+            #(S, A, R) = (XB.X['S'][i], XB.X['A'][i], XB.X['R'][i])
+            
+            #C = Matricize(self.C, self.N, S['b'], S['B'], S['Q'])
+            
+            #X.append(list(C.BB) + list(C.QQ.flatten()))
+            #Y.append(0 + A['f'])
+            
+        #X = np.asarray(X)
+        #Y = np.asarray(Y)
+        
+        ##for i in range(len(X)) : print(X[i], Y[i])
+        
+        #assert (model is not None)
+        #model.compile(optimizer='adam', loss='binary_crossentropy', metrics=['accuracy'])
+        #res = model.fit(X, Y, nb_epoch=100, batch_size=20, verbose=2, validation_split=0.1)
+
+        #model.save('./NN0-f.h5')
+
+
+    #def train_s(self, XB) :
+        #model = self.s_model
+        
+        #X = []
+        #Y = []
+        #for i in range(len(XB.X['S'])) :
+            #(S, A, R) = (XB.X['S'][i], XB.X['A'][i], XB.X['R'][i])
+            ## Not moving forward?
+            #if (not A['f']) : continue
+        
+            #C = Matricize(self.C, self.N, S['b'], S['B'], S['Q'])
+            
+            #X.append(list(C.BB) + list(C.QQ.flatten()))
+            #Y.append(C.cs(A['s']))
+        
+        #X = np.asarray(X)
+        #Y = np.asarray(Y)
+        
+        #print(X[0:1])
+        #print(Y[0:1])
+        #print(model.predict(X[0:1]))
+        
+        ##for i in range(len(X)) : print(X[i], Y[i])
+        
+        #assert (model is not None)
+        ## categorical_crossentropy / mse / ... (https://keras.io/objectives/) 
+        #model.compile(optimizer='adam', loss='categorical_crossentropy', metrics=['accuracy'])
+        #res = model.fit(X, Y, nb_epoch=10, batch_size=20, verbose=2, validation_split=0.1)
+
+        #model.save('./NN0-s.h5')
+
+    #def train_m(self, XB) :
+        #model = self.m_model
+        
+        #X = []
+        #Y = []
+        #for i in range(len(XB.X['S'])) :
+            #(S, A, R) = (XB.X['S'][i], XB.X['A'][i], XB.X['R'][i])
+            ## Moving forward?
+            #if (A['f']) : continue
+        
+            #C = Matricize(self.C, self.N, S['b'], S['B'], S['Q'])
+            
+            #X.append(list(C.BB) + list(C.QQ.flatten()))
+            #Y.append(C.cm(A['m']))
+        
+        #X = np.asarray(X)
+        #Y = np.asarray(Y)
+        
+        
+        ##print(X[0:1])
+        ##print(Y[0:1])
+        ##print(model.predict(X[0:1]))
+        
+        ##for i in range(len(X)) : print(X[i], Y[i])
+        
+        #assert (model is not None)
+        ## Optimizer (https://keras.io/optimizers/)
+        ##opt = Adam(lr=0.001, beta_1=0.99, beta_2=0.999, epsilon=1e-08, decay=0.0)
+        ## loss: categorical_crossentropy / mse / ... (https://keras.io/objectives/)
+        #model.compile(optimizer='sgd', loss='categorical_crossentropy', metrics=['accuracy'])
+        #res = model.fit(X, Y, nb_epoch=10, batch_size=20, verbose=2, validation_split=0.1)
+
+        #model.save('./NN0-m.h5')
+    
+    def train_RL(self, XB) :
+        pass
+
+
+class School :
+    def __init__(self, wrd, nav_teacher) :
+        self.wrd = wrd
+        self.nav_teacher = nav_teacher
+
+    def teach(self, nav_learner, I) :
+        assert (0 < I <= 1e6)
+        wrd = self.wrd
+        XB = ExperienceBuffer(wrd)
+        
+        # Main loop
+        wrd.rewind()
+        while (wrd.i < I) :
+            wrd.Q[wrd.b].sort()
+            w0 = wrd.get_w()
+            # Let the learner ask the teacher
+            nav_learner.lesson(wrd.look(), self.nav_teacher)
+            # Get teacher's response R = (M, s)
+            R = self.nav_teacher.step(*XB.RecState(*wrd.look()))
+            # NOTE: XB.RecAction returns ([], s) and modifies wrd appropriately
+            wrd.move(*XB.RecAction(*R))
+            # Reward = decrease in number of people waiting
+            XB.RecReward(wrd.get_w() - w0)
+        
+        assert (len(XB.X['S']) == len(XB.X['A']))
+        assert (len(XB.X['A']) == len(XB.X['R']))
+        
+        #for a in XB.X['A'] : print(a)
+        
+        nav_learner.curriculum(wrd, self.nav_teacher, XB)
+        
+        #f_model = self.train_f_model(wrd, XB)
+        #s_model = self.train_s_model(wrd, XB)
+        #M_model = self.train_M_model(wrd, XB)
+        
+        #return {'NN-f': f_model, 'NN-s': s_model, 'NN-M': M_model}
+        
+
+class Profiler:
+    """
+    Runs the systems with a particular strategy "nav".
+    """
+
+    # Number of iterations (time steps)
+    # This will be I ~ 1e6
+    I = 1000
+
+    def __init__(self, wrd, nav):
+        # W[i] = average number of people waiting at time i
+        self.W = []
+        # w = average over time
+        self.w = None
+
+        assert (0 < self.I <= 1e9)
+
+        wrd.rewind()
+        assert (wrd.i == 0)
+
+        # Main loop
+        while wrd.i < self.I:
+            wrd.move(*nav.step(*wrd.look()))
+            self.W.append(wrd.get_w())
+
+        assert len(self.W)
+        self.w = mean(self.W)
+
+
+def main_entry():
+    C = 3
+    N = 6
+    
+    random.seed(-1)
+    wrd = main.World(C, N)
+    nav = AI_MY(C, N)
+    
+    print("Profiling")
+    report = Profiler(wrd, nav)
+    print("Profiling done")
+    
+    
+def main_entry_train():
+    C = 3
+    N = 6
+    I = 10000
+    
+    random.seed(-1)
+    wrd = main.World(C, N)
+    nav_teacher = AI_GREEDY1(C, N)
+    nav_learner = AI_MY(C, N)
+    school = School(wrd, nav_teacher)
+    school.teach(nav_learner, I)
+
+    #report = Trainer(wrd, nav)
+
+from timeit import timeit
+
+if (__name__ == "__main__"):
+    #tf_sess = tf.Session()
+    #keras_backend.set_session(tf_sess)
+
+    #t = timeit(main_entry, number=1)
+    t = timeit(main_entry_train, number=1)
+    print("Time:", t, "(sec)")
+    

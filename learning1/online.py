@@ -390,13 +390,14 @@ class Profiler:
         
         # Main loop
         while wrd.i < self.I:
-            # try:
-            #     M,s = (nav.step(*wrd.look(),spre))
-            # except:
-            #     M,s = (nav.step(*wrd.look()))
+            try:
+                M,s = (nav.step(*wrd.look(),spre))
+                wrd.move(*nav.step(*wrd.look(),spre))
+            except:
+                M,s = (nav.step(*wrd.look()))
+                wrd.move(*nav.step(*wrd.look()))
             # self.l[0].append(M)
             # self.l[1].append(s)
-            wrd.move(*nav.step(*wrd.look()))
             spre = s
             #print(s)
             self.W.append(wrd.get_w())

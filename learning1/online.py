@@ -256,7 +256,7 @@ class AI_ON:
         with open("out_vloss.txt", "rb") as fo:   # Unpickling
             vloss = pickle.load(fo)
             
-        for j in range (100):    
+        for j in range (10000):    
             
             mod = self.model
             nepoch = (j+1)*10
@@ -371,7 +371,7 @@ class Profiler:
     
     # Number of iterations (time steps)
     # This will be I ~ 1e6
-    I = 1000
+    # I = I
     
     def __init__(self, wrd, nav):
         self.I = I
@@ -418,16 +418,16 @@ def main_entry():
     
 
 def main_entry_train():
-    C = 3
-    N = 6
+    # C = 3
+    # N = 6
+    # I = 1000
     
-    for I in [50000]:
-        random.seed(-1)
-        wrd = main.World(C, N)
-        nav_teacher = AI_RV(C, N)
-        nav_learner = AI_ON(C, N)
-        school = School(wrd, nav_teacher)
-        school.teach(nav_learner, I)
+    random.seed(-1)
+    wrd = main.World(C, N)
+    nav_teacher = AI_RV(C, N)
+    nav_learner = AI_ON(C, N)
+    school = School(wrd, nav_teacher)
+    school.teach(nav_learner, I)
 
     #report = Trainer(wrd, nav)
 def plot_all():

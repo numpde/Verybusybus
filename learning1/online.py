@@ -419,31 +419,7 @@ def main_entry_train():
     school.teach(nav_learner, I)
 
     #report = Trainer(wrd, nav)
-def plot_all():
-    plt.clf
-    drawacc()
-    plt.clf
-    drawloss()
-    plt.clf
-    drawvacc()
-    plt.clf
-    drawvloss()
-    plt.clf
-    drawepps()
-    
-    
-    
-    
-    
-from timeit import timeit
-
-if (__name__ == "__main__"):
-    #tf_sess = tf.Session()
-    #keras_backend.set_session(tf_sess)
-
-    t = timeit(main_entry_train, number=1)
-    print("Time:", t, "(sec)")
-    
+        
 # Stats
 
 # RV learning
@@ -544,20 +520,50 @@ def testai():
     c=str(round(st.mean(epps),2))
     d=str(round(st.pstdev(epps),2))
     e=str(len(epps))
+    plt.clf()
     plt.xlabel('E[pps]')
     plt.ylabel('Frequency')
     plt.text(30, 0.25, r'$\mu = ' + c + ', \ \sigma = ' + d + ', n = ' + e + '$')
     plt.hist(epps, normed=1, bins = 16)
     plt.show()
     
-def prepai(I):
+def prepai(n):
     try:
         with open("pre_ai.txt", "rb") as fe:
             epps = pickle.load(fe)
     except:
         epps = []
-    for _ in range (I):
+        
+    for _ in range (n):
         ai = Profiler(World(3,6),AI_ON(3,6))
         epps.append(ai.w)
-        with open("pre_ai.txt", "wb") as fw:   #Pickling
-            pickle.dump(epps, fw)
+        
+    with open("pre_ai.txt", "wb") as fw:   #Pickling
+        pickle.dump(epps, fw)
+
+def plot_all():
+    plt.clf
+    drawacc()
+    plt.clf
+    drawloss()
+    plt.clf
+    drawvacc()
+    plt.clf
+    drawvloss()
+    plt.clf
+    drawepps()
+            
+    
+from timeit import timeit
+
+if (__name__ == "__main__"):
+    #tf_sess = tf.Session()
+    #keras_backend.set_session(tf_sess)
+
+    t = timeit(main_entry_train, number=1)
+    print("Time:", t, "(sec)")
+    
+    plot_all()
+    
+    prepai(256)
+    testai()

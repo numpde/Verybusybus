@@ -235,8 +235,8 @@ class AI_ON:
         return M, s
     
     def curriculum(self, wrd, nav_teacher, XB) :
-        # self.train_RL(XB)
-        pass
+        self.train_RL(XB)
+        
         
     def train_RL(self, XB) :
         # mod = self.model
@@ -331,7 +331,7 @@ class AI_ON:
             pickle.dump(vloss, fo)
             
             
-        # mod.save('NN1.h5')
+        mod.save('NN1.h5')
 
 class School :
     def __init__(self, wrd, nav_teacher) :
@@ -430,7 +430,22 @@ def main_entry_train():
         school.teach(nav_learner, I)
 
     #report = Trainer(wrd, nav)
-
+def plot_all():
+    plt.clf
+    drawacc()
+    plt.clf
+    drawloss()
+    plt.clf
+    drawvacc()
+    plt.clf
+    drawvloss()
+    plt.clf
+    drawepps()
+    
+    
+    
+    
+    
 from timeit import timeit
 
 if (__name__ == "__main__"):

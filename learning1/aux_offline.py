@@ -1,5 +1,6 @@
 import pickle
 import numpy as np
+from AI_RV import AI_RV
 
 C = 3
 N = 6

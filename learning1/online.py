@@ -257,7 +257,7 @@ class AI_ON:
         with open("out_vloss.txt", "rb") as fo:   # Unpickling
             vloss = pickle.load(fo)
             
-        for j in range (10000):    
+        for j in range (10):    
             
             mod = self.model
             nepoch = (j+1)*10
@@ -533,9 +533,10 @@ def prepai(n):
             epps = pickle.load(fe)
     except:
         epps = []
-        
+    
+    ai = AI_ON(3,6)    
     for _ in range (n):
-        ai = Profiler(World(3,6),AI_ON(3,6))
+        ai = Profiler(World(3,6),ai)
         epps.append(ai.w)
         
     with open("pre_ai.txt", "wb") as fw:   #Pickling

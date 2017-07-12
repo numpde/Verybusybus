@@ -26,6 +26,7 @@ from keras import regularizers
 from keras.layers       import Dense, Dropout, Merge
 
 from main import mean
+from main import World
 
 from AI_RV import AI_RV
 
@@ -39,7 +40,7 @@ def acc_and_loss(NN, X, Y) :
     loss = []
     acc  = []
     for (p, q) in zip(Y, NN.predict(X)) :
-        loss += [ -sum(a*np.log(b) for (b, a) in zip(p, q)) ]
+        loss += [ -sum(a*np.log(b) for (a, b) in zip(p, q) if (b != 0)) ]
         acc  += [ np.argmax(p) == np.argmax(q) ]
     return (np.mean(acc), np.mean(loss))
 
@@ -295,7 +296,7 @@ class AI_ON:
                 ai = Profiler(World(3,6), AI_ON(3,6))
                 epps[0] = ai.w
                 acc[0] = acc0
-                # loss[0] = loss0
+                loss[0] = loss0
                 
             self.hist = mod.fit(X, Y, epochs=10, batch_size=20, verbose=2, validation_split=0.1)
             (accn, lossn) = acc_and_loss(mod, X, Y) # after epoch 10
@@ -303,7 +304,7 @@ class AI_ON:
             ai = Profiler(World(3,6), AI_ON(3,6))
             
             acc[nepoch] = accn
-            loss[nepoch - 10] = self.hist.history['loss'][0]
+            loss[nepoch] = lossn
             vacc[nepoch - 10] = self.hist.history['val_acc'][0]
             vloss[nepoch - 10] = self.hist.history['val_loss'][0]
             epps[nepoch] = ai.w
@@ -403,18 +404,6 @@ class Profiler:
         assert len(self.W)
         self.w = mean(self.W)
         
-
-def main_entry():
-    C = 3
-    N = 6
-    
-    random.seed(-1)
-    # wrd = main.World(C, N)
-    nav = AI_ON(C, N)
-    
-    print("Profiling")
-    report = Profiler(wrd, nav)
-    print("Profiling done")
     
 
 def main_entry_train():
@@ -452,7 +441,6 @@ if (__name__ == "__main__"):
     #tf_sess = tf.Session()
     #keras_backend.set_session(tf_sess)
 
-    #t = timeit(main_entry, number=1)
     t = timeit(main_entry_train, number=1)
     print("Time:", t, "(sec)")
     
@@ -549,7 +537,7 @@ def drawepps():
     d = str(round(min(y),4))
     plt.text(700,65, ' min value = ' + d )
     plt.show()
-    
+        
 def testai():
     with open("pre_ai.txt", "rb") as fe:
         epps = pickle.load(fe)

@@ -536,8 +536,8 @@ def prepai(n):
     
     ai = AI_ON(3,6)    
     for _ in range (n):
-        ai = Profiler(World(3,6),ai)
-        epps.append(ai.w)
+        pr = Profiler(World(3,6),ai)
+        epps.append(pr.w)
         
     with open("pre_ai.txt", "wb") as fw:   #Pickling
         pickle.dump(epps, fw)

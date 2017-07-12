@@ -424,7 +424,7 @@ def main_entry_train():
     for I in [50000]:
         random.seed(-1)
         wrd = main.World(C, N)
-        nav_teacher = AI_CB(C, N)
+        nav_teacher = AI_RV(C, N)
         nav_learner = AI_ON(C, N)
         school = School(wrd, nav_teacher)
         school.teach(nav_learner, I)

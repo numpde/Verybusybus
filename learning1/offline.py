@@ -34,7 +34,6 @@ from keras.layers       import Dense, Dropout, Merge
 from main import mean
 
 from AI_RV import AI_RV
-from AI_CB import AI_CB
 
 import pickle
 

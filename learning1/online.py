@@ -28,7 +28,6 @@ from keras.layers       import Dense, Dropout, Merge
 from main import mean
 
 from AI_RV import AI_RV
-from AI_CB import AI_CB
 
 import pickle
 
@@ -549,7 +548,11 @@ def testai():
     plt.show()
     
 def prepai(I):
-    epps = []
+    try:
+        with open("pre_ai.txt", "rb") as fe:
+            epps = pickle.load(fe)
+    except:
+        epps = []
     for _ in range (I):
         ai = Profiler(World(3,6),AI_ON(3,6))
         epps.append(ai.w)

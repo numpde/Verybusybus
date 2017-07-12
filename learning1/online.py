@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-# Author: RA
+# Author: Roman Andreev and Alejandro Caicedo
 #         incl parts by RV
 
 import tensorflow as tf
@@ -566,5 +566,5 @@ if (__name__ == "__main__"):
     
     plot_all()
     
-    prepai(256)
+    prepai(50)
     testai()

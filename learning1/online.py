@@ -242,22 +242,22 @@ class AI_ON:
     def train_RL(self, XB) :
         # mod = self.model
         
-        with open("out_Epps.txt", "rb") as fe:
+        with open("out_Epps.dat", "rb") as fe:
             epps = pickle.load(fe)
         
-        with open("out_acc.txt", "rb") as fp:   # Unpickling
+        with open("out_acc.dat", "rb") as fp:   # Unpickling
             acc = pickle.load(fp)
     
-        with open("out_vacc.txt", "rb") as fo:   # Unpickling
+        with open("out_vacc.dat", "rb") as fo:   # Unpickling
             vacc = pickle.load(fo)
             
-        with open("out_loss.txt", "rb") as fp:   # Unpickling
+        with open("out_loss.dat", "rb") as fp:   # Unpickling
             loss = pickle.load(fp)
     
-        with open("out_vloss.txt", "rb") as fo:   # Unpickling
+        with open("out_vloss.dat", "rb") as fo:   # Unpickling
             vloss = pickle.load(fo)
             
-        for j in range (10000):    
+        for j in range (1):    
             
             mod = self.model
             nepoch = (j+1)*10
@@ -291,7 +291,7 @@ class AI_ON:
             
             mod.compile(optimizer='adam', loss='categorical_crossentropy', metrics=['accuracy'])
             
-            if j ==0:
+            if (j == 0) :
                 (acc0, loss0) = acc_and_loss(mod, X, Y) #before epoch 0
                 ai = Profiler(World(3,6), AI_ON(3,6))
                 epps[0] = ai.w
@@ -316,19 +316,19 @@ class AI_ON:
             
             mod.save('NN1.h5')
             
-        with open("out_Epps.txt", "wb") as fe:   #Pickling
+        with open("out_Epps.dat", "wb") as fe:   #Pickling
             pickle.dump(epps, fe)    
             
-        with open("out_acc.txt", "wb") as fp:   #Pickling
+        with open("out_acc.dat", "wb") as fp:   #Pickling
             pickle.dump(acc, fp)
             
-        with open("out_vacc.txt", "wb") as fo:   #Pickling
+        with open("out_vacc.dat", "wb") as fo:   #Pickling
             pickle.dump(vacc, fo)
             
-        with open("out_loss.txt", "wb") as fp:   #Pickling
+        with open("out_loss.dat", "wb") as fp:   #Pickling
             pickle.dump(loss, fp)
             
-        with open("out_vloss.txt", "wb") as fo:   #Pickling
+        with open("out_vloss.dat", "wb") as fo:   #Pickling
             pickle.dump(vloss, fo)
             
             
@@ -425,14 +425,14 @@ def main_entry_train():
 
 # RV learning
 # 
-# with open("out_Epps.txt", "rb") as fe:
+# with open("out_Epps.dat", "rb") as fe:
 #     Epps = pickle.load(fe)
 # 
 # ai = Profiler(main.World(3,6),AI_ON(3,6))
 # 
 # Epps.append(ai.w)
 # 
-# with open("out_Epps.txt", "wb") as fe:   #Pickling
+# with open("out_Epps.dat", "wb") as fe:   #Pickling
 #     pickle.dump(Epps, fe)
 #     
 # plt.plot(range(I),ai.W)
@@ -443,6 +443,13 @@ def main_entry_train():
 # plt.show()
 
 
+def show_save_close(filename) :
+    plt.show()
+    plt.savefig(filename + '.eps')
+    plt.savefig(filename + '.png')
+    plt.close()
+	
+
 def drawex():
     rui = Profiler(World(3,6),AI_RV(3,6))
     plt.plot(range(len(rui.W)),rui.W)
@@ -450,11 +457,11 @@ def drawex():
     plt.xlabel('Iterations')
     plt.ylabel('People waiting per station')
     # plt.text(20, 4, r'$\mu = ' + c +'$')
-    plt.show()
+    show_save_close('outfig_ex')
 
 
 def drawacc():
-    with open('out_acc.txt', 'rb') as infile :
+    with open('out_acc.dat', 'rb') as infile :
         acc = pickle.load(infile)
     list0 = sorted(acc.items())
     x,y = zip(*list0)
@@ -463,10 +470,10 @@ def drawacc():
     plt.ylabel('Accuracy')
     c = str(round(y[-1],4))
     plt.text(700,0.3, ' last value = ' + c )
-    plt.show() 
+    show_save_close('outfig_acc')
     
 def drawloss():
-    with open('out_loss.txt', 'rb') as infile :
+    with open('out_loss.dat', 'rb') as infile :
         loss = pickle.load(infile)
     list0 = sorted(loss.items())
     x,y = zip(*list0)
@@ -475,10 +482,10 @@ def drawloss():
     plt.ylabel('Loss')
     c = str(round(y[-1],4))
     plt.text(700,0.5, ' last value = ' + c )
-    plt.show()
+    show_save_close('outfig_loss')
     
 def drawvacc():
-    with open('out_vacc.txt', 'rb') as infile :
+    with open('out_vacc.dat', 'rb') as infile :
         vacc = pickle.load(infile)
     list0 = sorted(vacc.items())
     x,y = zip(*list0)
@@ -487,10 +494,10 @@ def drawvacc():
     plt.ylabel('Validation Accuracy')
     c = str(round(y[-1],4))
     plt.text(700,0.9, ' last value = ' + c )
-    plt.show()
+    show_save_close('outfig_vacc')
     
 def drawvloss():
-    with open('out_vloss.txt', 'rb') as infile :
+    with open('out_vloss.dat', 'rb') as infile :
         vloss = pickle.load(infile)
     list0 = sorted(vloss.items())
     x,y = zip(*list0)
@@ -499,10 +506,10 @@ def drawvloss():
     plt.ylabel('Validation Loss')
     c = str(round(y[-1],4))
     plt.text(700,0.6, ' last value = ' + c )
-    plt.show()
+    show_save_close('outfig_vloss')
     
 def drawepps():
-    with open('out_Epps.txt', 'rb') as infile :
+    with open('out_Epps.dat', 'rb') as infile :
         epps = pickle.load(infile) 
     list0 = sorted(epps.items())
     x,y = zip(*list0)
@@ -513,10 +520,10 @@ def drawepps():
     plt.text(700,75, ' last value = ' + c )
     d = str(round(min(y),4))
     plt.text(700,65, ' min value = ' + d )
-    plt.show()
+    show_save_close('outfig_epps')
         
 def testai():
-    with open("pre_ai.txt", "rb") as fe:
+    with open("pre_ai.dat", "rb") as fe:
         epps = pickle.load(fe)
     c=str(round(st.mean(epps),2))
     d=str(round(st.pstdev(epps),2))
@@ -526,11 +533,11 @@ def testai():
     plt.ylabel('Frequency')
     plt.text(30, 0.25, r'$\mu = ' + c + ', \ \sigma = ' + d + ', n = ' + e + '$')
     plt.hist(epps, normed=1, bins = 16)
-    plt.show()
+    show_save_close('outfig_ai')
     
 def prepai(n):
     try:
-        with open("pre_ai.txt", "rb") as fe:
+        with open("pre_ai.dat", "rb") as fe:
             epps = pickle.load(fe)
     except:
         epps = []
@@ -541,19 +548,20 @@ def prepai(n):
         pr = Profiler(World(3,6),ai)
         epps.append(pr.w)
         
-    with open("pre_ai.txt", "wb") as fw:   #Pickling
+    with open("pre_ai.dat", "wb") as fw:   #Pickling
         pickle.dump(epps, fw)
 
 def plot_all():
-    plt.clf
+    plt.ion()
+    plt.clf()
     drawacc()
-    plt.clf
+    plt.clf()
     drawloss()
-    plt.clf
+    plt.clf()
     drawvacc()
-    plt.clf
+    plt.clf()
     drawvloss()
-    plt.clf
+    plt.clf()
     drawepps()
             
     

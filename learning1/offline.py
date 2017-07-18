@@ -242,28 +242,28 @@ class AI_OFF:
     def train_RL(self, XB) :
         mod = self.model
         
-        with open('pre_cbw.txt', 'rb') as infile :
+        with open('pre_cbw.dat', 'rb') as infile :
             cbw = pickle.load(infile)
             
-        with open("pre_Xfeed.txt", "rb") as ft:   # Unpickling
+        with open("pre_Xfeed.dat", "rb") as ft:   # Unpickling
             X = pickle.load(ft)
     
-        with open("pre_Yfeed.txt", "rb") as fr:   # Unpickling
+        with open("pre_Yfeed.dat", "rb") as fr:   # Unpickling
             Y = pickle.load(fr)
         
-        with open("out_acc.txt", "rb") as fp:   # Unpickling
+        with open("out_acc.dat", "rb") as fp:   # Unpickling
             acc = pickle.load(fp)
     
-        with open("out_vacc.txt", "rb") as fo:   # Unpickling
+        with open("out_vacc.dat", "rb") as fo:   # Unpickling
             vacc = pickle.load(fo)
             
-        with open("out_loss.txt", "rb") as fp:   # Unpickling
+        with open("out_loss.dat", "rb") as fp:   # Unpickling
             loss = pickle.load(fp)
     
-        with open("out_vloss.txt", "rb") as fo:   # Unpickling
+        with open("out_vloss.dat", "rb") as fo:   # Unpickling
             vloss = pickle.load(fo)
                     
-        with open("out_Epps.txt", "rb") as fe:
+        with open("out_Epps.dat", "rb") as fe:
             epps = pickle.load(fe)
                     
         for j in range(10):
@@ -300,19 +300,19 @@ class AI_OFF:
             
             mod.save('out_nn.h5')
             
-        with open("out_acc.txt", "wb") as fp:   #Pickling
+        with open("out_acc.dat", "wb") as fp:   #Pickling
             pickle.dump(acc, fp)
             
-        with open("out_vacc.txt", "wb") as fo:   #Pickling
+        with open("out_vacc.dat", "wb") as fo:   #Pickling
             pickle.dump(vacc, fo)
             
-        with open("out_loss.txt", "wb") as fp:   #Pickling
+        with open("out_loss.dat", "wb") as fp:   #Pickling
             pickle.dump(loss, fp)
             
-        with open("out_vloss.txt", "wb") as fo:   #Pickling
+        with open("out_vloss.dat", "wb") as fo:   #Pickling
             pickle.dump(vloss, fo)
                     
-        with open("out_Epps.txt", "wb") as fe:   #Pickling
+        with open("out_Epps.dat", "wb") as fe:   #Pickling
             pickle.dump(epps, fe)
             
         
@@ -383,7 +383,7 @@ if (__name__ == "__main__"):
 
 
 def drawacc():
-    with open('out_acc.txt', 'rb') as infile :
+    with open('out_acc.dat', 'rb') as infile :
         acc = pickle.load(infile)
     list0 = sorted(acc.items())
     x,y = zip(*list0)
@@ -395,7 +395,7 @@ def drawacc():
     plt.show() 
     
 def drawloss():
-    with open('out_loss.txt', 'rb') as infile :
+    with open('out_loss.dat', 'rb') as infile :
         loss = pickle.load(infile)
     list0 = sorted(loss.items())
     x,y = zip(*list0)
@@ -407,7 +407,7 @@ def drawloss():
     plt.show()
     
 def drawvacc():
-    with open('out_vacc.txt', 'rb') as infile :
+    with open('out_vacc.dat', 'rb') as infile :
         vacc = pickle.load(infile)
     list0 = sorted(vacc.items())
     x,y = zip(*list0)
@@ -419,7 +419,7 @@ def drawvacc():
     plt.show()
     
 def drawvloss():
-    with open('out_vloss.txt', 'rb') as infile :
+    with open('out_vloss.dat', 'rb') as infile :
         vloss = pickle.load(infile)
     list0 = sorted(vloss.items())
     x,y = zip(*list0)
@@ -431,7 +431,7 @@ def drawvloss():
     plt.show()
     
 def drawepps():
-    with open('out_Epps.txt', 'rb') as infile :
+    with open('out_Epps.dat', 'rb') as infile :
         epps = pickle.load(infile) 
     list0 = sorted(epps.items())
     x,y = zip(*list0)

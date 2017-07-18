@@ -167,30 +167,30 @@ Y = np.asarray(Y)
 with open('pre_xb.pkl', 'wb') as output:
     pickle.dump(XB, output, pickle.HIGHEST_PROTOCOL) 
                     
-with open("pre_Xfeed.txt", "wb") as fu:   #Pickling
+with open("pre_Xfeed.dat", "wb") as fu:   #Pickling
     pickle.dump(X, fu)
             
-with open("pre_Yfeed.txt", "wb") as fy:   #Pickling
+with open("pre_Yfeed.dat", "wb") as fy:   #Pickling
     pickle.dump(Y, fy)
 
-with open("pre_cbw.txt", "wb") as fw:   #Pickling
+with open("pre_cbw.dat", "wb") as fw:   #Pickling
     pickle.dump(cbw, fw)
 
 with open('pre_world.pkl', 'wb') as output:
     pickle.dump(wrd, output, pickle.HIGHEST_PROTOCOL)
 
-with open("out_acc.txt", "wb") as f : 
+with open("out_acc.dat", "wb") as f : 
     pickle.dump(dict([]), f)
 
-with open("out_loss.txt", "wb") as f : 
+with open("out_loss.dat", "wb") as f : 
     pickle.dump(dict([]), f)
     
-with open("out_vacc.txt", "wb") as f : 
+with open("out_vacc.dat", "wb") as f : 
     pickle.dump(dict([]), f)
     
-with open("out_vloss.txt", "wb") as f : 
+with open("out_vloss.dat", "wb") as f : 
     pickle.dump(dict([]), f)
     
-with open("out_Epps.txt", "wb") as f :
+with open("out_Epps.dat", "wb") as f :
     pickle.dump(dict([]), f)
 

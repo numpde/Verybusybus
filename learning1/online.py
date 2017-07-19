@@ -594,7 +594,7 @@ def plot_all():
             
     
 from timeit import timeit
-
+   
 if (__name__ == "__main__"):
     #tf_sess = tf.Session()
     #keras_backend.set_session(tf_sess)

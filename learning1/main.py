@@ -8,14 +8,15 @@ Author: RA
 
 from random import randint
 from numpy import mean
+import matplotlib.pyplot as plt
+import statistics as st
 
 #  Section 0: Classes
 #  ------------------
 # pylint:disable=C0103,R0201,R0903,R0913,W0702,W0703
 
 
-# 
-import reinlear
+
 
 
 class AI_CLOCK:
@@ -265,7 +266,7 @@ class Profiler:
 
     # Number of iterations (time steps)
     # This will be I ~ 1e6
-    I = 10000
+    I = 10000000
 
     def __init__(self, wrd, nav):
         # W[i] = average number of people waiting at time i
@@ -308,15 +309,14 @@ def main():
     #  --------------------------------
 
     # Bus capacity
-    C = 3  # This will be around 10
+    C = 10  # This will be around 10
     # Number of stations
-    N = 6  # This will be around 20
+    N = 20  # This will be around 20
 
     print("1. Initializing navigators")
 
     # Competing navigation strategies
     NAV = []
-    NAV.append(reinlear.AI_MY(C, N))
     NAV.append(AI_CLOCK(C, N))
     NAV.append(AI_GREEDY(C, N))
 
@@ -396,6 +396,61 @@ def main():
     plt.show()
     #"""
 
-if __name__ == "__main__":
-    main()
+def show_save_close(filename) :
+    plt.show()
+    plt.savefig(filename + '.eps')
+    plt.savefig(filename + '.png')
+    plt.close()
 
+if __name__ == "__main__":
+    I = 10000000
+    plt.ion()
+    cl=Profiler(World(10,20),AI_CLOCK(10,20))
+    gr=Profiler(World(10,20),AI_GREEDY(10,20))
+    cl_40=Profiler(Wordl(40,20),AI_CLOCK(40,20))
+
+    c=str(round(cl.w,2))
+    g=str(round(gr.w,2))
+    p1=plt.loglog(range(I),cl.W,label='Clock',marker="H",markevery = [I-1])
+    p2=plt.loglog(range(I),gr.W,label='Greedy',marker="o",markevery = [I-1])
+    plt.xlabel('Iterations')
+    plt.ylabel('People waiting per station')
+    plt.legend()
+    plt.text(10, 500, r'$\mu Greedy = ' + g + '$')
+    plt.text(10, 100, r'$\mu Clock = ' + c + '$')
+    show_save_close('gr_and_cl_evol')
+    
+    plt.clf()    
+    c=str(round(cl.w,2))
+    d=str(round(st.pstdev(cl.W),2))
+    plt.xlabel('People waiting per station')
+    plt.ylabel('Frequency')
+    plt.text(20, 0.010, r'$\mu = ' + c + ',\ \sigma = ' + d + '$')
+    plt.hist(cl.W, normed=1)
+    show_save_close('cl_histo')
+    
+    plt.clf()
+    c=str(round(gr.w,2))
+    d=str(round(st.pstdev(gr.W),2))
+    plt.xlabel('People waiting per station')
+    plt.ylabel('Frequency')
+    plt.text(1000, .00021, r'$\mu = ' + c + ',\ \sigma = ' + d + '$')
+    plt.hist(gr.W, normed=1)
+    show_save_close('gr_histo')
+    
+    plt.clf()
+    plt.plot(range(I),cl_40.W)
+    c=str(cl_40.w)
+    plt.xlabel('Iterations')
+    plt.ylabel('People waiting per station')
+    plt.text(1000000, 1, r'$\mu = ' + c + '$')
+    show_save_close('cl40_evol')
+    
+    plt.clf()
+    c=str(round(cl_40.w,2))
+    d=str(round(st.pstdev(cl_40.W),2))
+    plt.xlabel('People waiting per station')
+    plt.ylabel('Frequency')
+    plt.text(0.1, 4, r'$\mu = ' + c + ', \ \sigma=' + d + '$')
+    plt.hist(cl_40.W, normed=1, bins = 12)
+    show_save_close('cl40_histo')

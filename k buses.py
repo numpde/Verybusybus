@@ -2,7 +2,7 @@
 
 """
 Template by verybusybus.wordpress.com
-Author:
+Author: Alejandro Caicedo
 TODO: SAVE THIS FILE TO YOUR MACHINE
       WRITE YOUR NAME(S) HERE
 """
@@ -12,105 +12,6 @@ import matplotlib.pyplot as plt
 from random import randint
 from numpy import mean
 
-#  Section 0: Classes
-#  ------------------
-# pylint:disable=C0103,R0201,R0903,R0913,W0702,W0703
-
-# TODO: IMPLEMENT YOUR STRATEGY HERE
-class AI_MY:
-    """
-    AI class
-    """
-    name = "MY UNNAMED STRATEGY"  # Choose strategy name
-
-    def __init__(self, C, N):
-        # Capacity of the bus (integer >= 1)
-        self.C = C
-        # Number of stations (integer >= 2)
-        self.N = N
-
-    def step(self, b, B, Q):
-        """
-        Calculates one step.
-        Args:
-            b (int): the current location of the bus (0 <= b < N).
-            B (:obj: `list` of int): list [n1, n2, ..] of the passengers
-                currently on the bus (not exceeding the capacity), i.e.
-                nk is the destination of passenger k.
-                The order is that of boarding (provided by this function: see M).
-                No destination is the current position.
-            Q (:obj: `list` of :obj: `list` of int): a list of N lists, where
-                Q[n] = [t1, t2, ..] is the list of people currently waiting at
-                station n with destination t1, t2, ..
-                No destination equals the location,
-                i.e. (t != n) for any t in Q[n].
-        The input variables may be modified within this function w/o consequence.
-        Returns:
-            tuple (M, s):
-            M (:obj: `list` of int): is a list of indices M = [i1, i2, .., im]
-                into the list Q[b] indicating that the people Q[b][i] will board
-                the bus (in the order defined by M).
-                Set M = [] if no one boards the bus.
-                Note the constraints:
-                    len(B) + len(M) <= Capacity C,
-                and
-                    0 <= i < len(Q[b]) for each i in M.
-            s (int): is either +1, -1, or 0, indicating the direction of travel
-                of the bus (the next station is (b + s) % N).
-        """
-
-        return [], []
-
-
-class AI_CLOCK:
-    """
-    'Always go in the same direction' strategy
-    """
-    name = "Clock"
-
-    def __init__(self, C, N):
-        self.C = C
-        self.N = N
-
-    def step(self, b, B, Q):
-        """
-        Calculates one step.
-        """
-        # Number of passengers to board
-        n = min(len(Q[b]), self.C - len(B))
-        # Passenger selection from Q[b]:
-        # Take passengers number 0, 1, .., n-1
-        M = list(range(n))
-
-        # Always go in one direction
-        s = +1
-
-        return M, s
-
-class AI_CLOCKNEG:
-    """
-    'Always go in the same direction' strategy
-    """
-    name = "Clockneg"
-
-    def __init__(self, C, N):
-        self.C = C
-        self.N = N
-
-    def step(self, b, B, Q):
-        """
-        Calculates one step.
-        """
-        # Number of passengers to board
-        n = min(len(Q[b]), self.C - len(B))
-        # Passenger selection from Q[b]:
-        # Take passengers number 0, 1, .., n-1
-        M = list(range(n))
-
-        # Always go in one direction
-        s = -1
-        return M, s
-        
 class AI_KCLOCK:
     """
     'Always go in the same direction' strategy
@@ -127,62 +28,35 @@ class AI_KCLOCK:
         Calculates one step.
         """
         # Number of passengers to board
-        n = [0 for _ in range(self.K)]
+        # n = [0 for _ in range(self.K)]
         M = [[] for _ in range(self.K)]
         
-        for i in range(self.K):
-            acc = 0
-            for j in range(i):
-                if b[j] != b[i]:continue
-                acc += n[j]
-            n[i] = min((len(Q[b[i]]) - acc), self.C - len(B[i]))
-            M[i] = list(range(acc, acc + n[i]))
+        # for i in range(self.K):
+        #     acc = 0
+        #     for j in range(i):
+        #         if b[j] != b[i]:continue
+        #         acc += n[j]
+        #     n[i] = min((len(Q[b[i]]) - acc), self.C - len(B[i]))
+        #     M[i] = list(range(acc, acc + n[i]))
         # Passenger selection from Q[b]:
         # Take passengers number 0, 1, .., n-1
+        M[0] = [i for i in range(len(Q[b[0]])) if (((Q[b[0]][i] - b[0])%(self.N)) <= (int((self.N)/2)))]
+        M[0] = M[0][:(self.C - len(B[0]))]
+        
+        M[1] = [i for i in range(len(Q[b[1]])) if (((Q[b[1]][i] - b[1])%(self.N)) > (int((self.N)/2)))]
+        M[1] = M[1][:(self.C - len(B[1]))]
+        
+        # print(M)
+        # print(b)
+        # print(Q[b[0]])
+        # print(Q[b[1]])
+        # print(B)
         
         # Always go in one direction
         s = [ (-1)**i for i in range(self.K)]
 
         return M, s        
         
-class AI_GREEDY:
-    """
-    'Modestly greedy' strategy
-    """
-    name = "Modestly greedy"
-
-    def __init__(self, C, N):
-        self.C = C
-        self.N = N
-        self.s = +1
-
-    def step(self, b, B, Q):
-        """
-        Calculates one step.
-        """
-        # Number of passengers to board
-        n = min(len(Q[b]), self.C - len(B))
-        # Passenger selection from Q[b]
-        M = list(range(n))
-
-        # No passengers? Continue as before
-        if (not B) and (not M):
-            return [], self.s
-
-        # Next passenger's destination
-        if len(B):
-            t = B[0]
-        else:
-            t = Q[b][M[0]]
-
-        # Destination relative to the current position
-        t = self.N - 2 * ((t - b + self.N) % self.N)
-
-        # Move towards that destination (modify default direction)
-        self.s = (+1) if (t > 0) else (-1)
-
-        return M, self.s
-
 
 class World:
     """
@@ -230,14 +104,15 @@ class World:
         """
         return self.b[:],[h[:] for h in self.B], [q[:] for q in self.Q]
 
-    def board1(self, m, i):
+    def board1(self, m, i,q,remov):
         '''
         Board one passenger
         m is an element of M, see move(...)
         '''
         #for i in range(self.K-1,-1,-1):
         self.B[i].append(self.Q[self.b[i]][m])
-        self.Q[self.b[i]].pop(m)
+        # self.Q[self.b[i]].pop(m)
+        remov[q].append(m)
     
     def move(self, M, s):
         """
@@ -260,10 +135,14 @@ class World:
 
         # Passengers mount (in the given order)
         # and are removed from the queue
-        for i in sorted(range(self.K), reverse=True):
-            for m in sorted(M[i], reverse=True):
-                self.board1(m,i)
-            
+        remov = [[] for _ in range(self.N)]
+        for i in (range(self.K)):
+            # if len(self.B[i]) == self.C: break
+            for m in M[i]:
+                self.board1(m,i,self.b[i],remov)
+            # print(remov) 
+        for k in range(self.N):       
+            self.Q[k] = [self.Q[k][j] for j in range(len(self.Q[k])) if j not in remov[k]]
         # Advance time
         self.i += 1
 
@@ -294,7 +173,7 @@ class World:
         """
         Checks consistency of the input.
         """
-
+        pass
         # 0.
         # C is an integer >= 1
         # N is an integer >= 2
@@ -404,121 +283,50 @@ def get_name(nav):
     except:
         return "Unknown"
 
-def main():
-    """
-    Main
-    """
-
-    #  Section 1: Initialize candidates
-    #  --------------------------------
-
-    # Bus capacity
-    C = 10  # This will be around 10
-    # Number of stations
-    N = 20 # This will be around 20
-    # Number of buses
-    K = 2
-
-    print("1. Initializing navigators")
-
-    # Competing navigation strategies
-    NAV = []
-    #NAV.append(AI_MY(C, N))
-    NAV.append(AI_KCLOCK(C, N, K))
-    #NAV.append(AI_GREEDY(C, N))
-
-
-    #  Section 2: Profile candidates
-    #  -----------------------------
-
-
-    print("2. Profiling navigators")
-
-    # Ranks
-    R = [None for _ in NAV]
-    # Score histories
-    S = [[] for _ in NAV]
-
-    # While some ranks are undecided
-    while [r for r in R if r is None]:
-        rank = sum((r is None) for r in R)
-        print("Number of competitors:", rank)
-
-        # Create a rewindable world
-        wrd = World(C,N,K)
-
-        # Navigator scores for this round
-        # (nonnegative; max score loses)
-        L = []
-
-        for n, nav in enumerate(NAV):
-            if R[n] is not None:
-                continue
-
-            print(" - Profiling:", get_name(nav))
-            try:
-                # Profile the navigator on the world
-                report = Profiler(wrd, nav)
-                # Score = average number of people waiting
-                score = report.w
-                # Record score
-                L.append((n, score))
-                print("   *Score for this round:", score)
-            except Exception as err:
-                R[n] = rank
-                print("   *Error:", err)
-
-        # Rank the losers of this round
-        for n, s in L:
-            if s == max(s for n, s in L):
-                R[n] = rank
-            S[n].append(s)
-
-
-    #  Section 3: Summary of results
-    #  -----------------------------
-
-
-    print("3. Final ranking:")
-
-    for r in sorted(list(set(R))):
-        print("  ", r, [get_name(NAV[i]) for i, rr in enumerate(R) if r == rr])
-
-
-    # The history of scores of n-th competitor
-    # is available here as S[n]
-    print("Score history:")
-    for n, H in enumerate(S):
-        print("   Contestant #{0}:".format(n), H)
-
-    # (Un)comment the following line for the score history plot
-    """
-    import matplotlib.pyplot as plt
-    for s in S :
-    	plt.plot(s, '-x')
-    plt.yscale('log')
-    plt.xlabel('Round')
-    plt.ylabel('Score (less is better)')
-    plt.legend([get_name(nav) for nav in NAV], numpoints=1)
+def show_save_close(filename) :
     plt.show()
-    #"""
+    plt.savefig(filename + '.eps')
+    plt.savefig(filename + '.png')
+    plt.close()
 
-#if __name__ == "__main__":
-#    main()
+if __name__ == "__main__":
     
-kcl=Profiler(World(10,20,2),AI_KCLOCK(10,20,2))    
+    I = 1000000    
+    kcl5=Profiler(World(5,20,2),AI_KCLOCK(5,20,2))    
+    kcl=Profiler(World(10,20,2),AI_KCLOCK(10,20,2))    
+    
+    plt.ion()
+    
+    plt.plot(range(I),kcl.W)
+    c=str(kcl.w)
+    plt.xlabel('Iterations')
+    plt.ylabel('People waiting per station')
+    plt.text(100000, 1, r'$\mu = ' + c + '$')
+    show_save_close('2clock_evol')
+    
+    plt.clf()
+    c=str(round(kcl.w,2))
+    d=str(round(st.pstdev(kcl.W),2))
+    plt.xlabel('People waiting per station')
+    plt.ylabel('Frequency')
+    plt.text(0.7, 4, r'$\mu = ' + c + ', \ \sigma =' + d + '$')
+    plt.hist(kcl.W, normed=1)
+    show_save_close('2clock_histo')
 
-'''plt.plot(list(range(1000000)),kcl.W)
-c=str(round(kcl.w,2))
-plt.xlabel('Itérations')
-plt.ylabel('People waiting per station')
-plt.text(100000, 0.75, r'$\mu = ' + c +'$')
-plt.show()'''
-
-'''c=str(round(kcl.w,2))
-d=str(round(st.pstdev(kcl.W),2))
-plt.xlabel('People waiting per station')
-plt.ylabel('Frequency')
-plt.text(0.1, 4, r'$\mu = ' + c + ', \ \sigma = ' + d +'$')
-plt.hist(kcl.W, normed=1, bins =14)
-plt.show()'''
+    plt.clf()
+    plt.plot(range(I),kcl5.W)
+    c=str(kcl5.w)
+    plt.xlabel('Iterations')
+    plt.ylabel('People waiting per station')
+    plt.text(100000, 1.4, r'$\mu = ' + c + '$')
+    show_save_close('2clock5_evol')
+    
+    plt.clf()
+    c=str(round(kcl5.w,2))
+    d=str(round(st.pstdev(kcl5.W),2))
+    plt.xlabel('People waiting per station')
+    plt.ylabel('Frequency')
+    plt.text(0.9, 3, r'$\mu = ' + c + ', \ \sigma =' + d + '$')
+    plt.hist(kcl5.W, normed=1)
+    show_save_close('2clock5_histo')
+    

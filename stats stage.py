@@ -688,7 +688,7 @@ plt.xlabel('Iterations')
 plt.ylabel('People waiting per station')
 plt.legend()
 plt.text(1000000, 1250, r'$\mu Greedy = ' + g '$')
-plt.text(1000000, 1100, r'$\mu Clock = $' + c)
+plt.text(1000000, 1100, r'$\mu Clock = ' + c '$')
 plt.show()'''
 
 ## Rui stats

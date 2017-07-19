@@ -257,7 +257,7 @@ class AI_ON:
         with open("out_vloss.dat", "rb") as fo:   # Unpickling
             vloss = pickle.load(fo)
             
-        for j in range (1):    
+        for j in range (1000):    
             
             mod = self.model
             nepoch = (j+1)*10
@@ -472,6 +472,25 @@ def drawacc():
     plt.text(700,0.3, ' last value = ' + c )
     show_save_close('outfig_acc')
     
+def tolog(list):
+    res=[]
+    for i in range(len(list)):
+        res.append(-np.log(1-list[i]))
+    return res
+    
+def drawlogacc():
+    with open('out_acc.dat', 'rb') as infile :
+        acc = pickle.load(infile)
+    list0 = sorted(acc.items())
+    x,y = zip(*list0)
+    ylog = tolog(y)
+    plt.plot(x, ylog, 'o--')
+    plt.xlabel('Epochs')
+    plt.ylabel('-log(1 - Accuracy)')
+    c = str(round(ylog[-1],4))
+    plt.text(700,0.3, ' last value = ' + c )
+    show_save_close('outfig_logacc')
+    
 def drawloss():
     with open('out_loss.dat', 'rb') as infile :
         loss = pickle.load(infile)
@@ -556,6 +575,8 @@ def plot_all():
     plt.clf()
     drawacc()
     plt.clf()
+    drawlogacc()
+    plt.clf()
     drawloss()
     plt.clf()
     drawvacc()
@@ -576,5 +597,5 @@ if (__name__ == "__main__"):
     
     plot_all()
     
-    prepai(256)
+    prepai(512)
     testai()

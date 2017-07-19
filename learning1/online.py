@@ -257,7 +257,7 @@ class AI_ON:
         with open("out_vloss.dat", "rb") as fo:   # Unpickling
             vloss = pickle.load(fo)
             
-        for j in range (1000):    
+        for j in range (10000):    
             
             mod = self.model
             nepoch = (j+1)*10
@@ -472,18 +472,12 @@ def drawacc():
     plt.text(700,0.3, ' last value = ' + c )
     show_save_close('outfig_acc')
     
-def tolog(list):
-    res=[]
-    for i in range(len(list)):
-        res.append(-np.log(1-list[i]))
-    return res
-    
 def drawlogacc():
     with open('out_acc.dat', 'rb') as infile :
         acc = pickle.load(infile)
     list0 = sorted(acc.items())
     x,y = zip(*list0)
-    ylog = tolog(y)
+    ylog = [-np.log(1-v) for v in y]
     plt.plot(x, ylog, 'o--')
     plt.xlabel('Epochs')
     plt.ylabel('-log(1 - Accuracy)')
@@ -554,6 +548,19 @@ def testai():
     plt.hist(epps, normed=1, bins = 16)
     show_save_close('outfig_ai')
     
+def testaizoom():
+    with open("pre_ai.dat", "rb") as fe:
+        epps = pickle.load(fe)
+    c=str(round(st.mean(epps),2))
+    d=str(round(st.pstdev(epps),2))
+    e=str(len(epps))
+    plt.clf()
+    plt.xlabel('E[pps]')
+    plt.ylabel('Frequency')
+    plt.text(30, 0.25, r'$\mu = ' + c + ', \ \sigma = ' + d + ', n = ' + e + '$')
+    plt.hist(epps, normed=1, bins = 16, range[1,2])
+    show_save_close('outfigzoom_ai')
+    
 def prepai(n):
     try:
         with open("pre_ai.dat", "rb") as fe:
@@ -599,3 +606,4 @@ if (__name__ == "__main__"):
     
     prepai(512)
     testai()
+    testaizoom()

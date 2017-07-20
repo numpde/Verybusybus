@@ -298,7 +298,7 @@ if __name__ == "__main__":
     plt.ion()
     
     plt.plot(range(I),kcl.W)
-    c=str(kcl.w)
+    c=str(round(kcl.w,2))
     plt.xlabel('Iterations')
     plt.ylabel('People waiting per station')
     plt.text(100000, 1, r'$\mu = ' + c + '$')
@@ -315,7 +315,7 @@ if __name__ == "__main__":
 
     plt.clf()
     plt.plot(range(I),kcl5.W)
-    c=str(kcl5.w)
+    c=str(round(kcl5.w,2))
     plt.xlabel('Iterations')
     plt.ylabel('People waiting per station')
     plt.text(100000, 1.4, r'$\mu = ' + c + '$')

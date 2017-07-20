@@ -448,7 +448,7 @@ def show_save_close(filename) :
     plt.savefig(filename + '.eps')
     plt.savefig(filename + '.png')
     plt.close()
-	
+
 
 def drawex():
     rui = Profiler(World(3,6),AI_RV(3,6))

@@ -2,13 +2,12 @@ import pickle
 import numpy as np
 from AI_RV import AI_RV
 
+from main import World
+
 C = 3
 N = 6
 I = 1000
 cbw = []
-
-import main
-from main import World
 
 wrd = World(C, N)
 for _ in range(I) : wrd.news(); wrd.i += 1

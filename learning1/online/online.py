@@ -558,7 +558,7 @@ def testaizoom():
     plt.xlabel('E[pps]')
     plt.ylabel('Frequency')
     plt.text(30, 0.25, r'$\mu = ' + c + ', \ \sigma = ' + d + ', n = ' + e + '$')
-    plt.hist(epps, normed=1, bins = 16, range[1,2])
+    plt.hist(epps, normed=1, bins = 16, range=[1,2])
     show_save_close('outfigzoom_ai')
     
 def prepai(n):

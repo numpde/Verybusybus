@@ -407,11 +407,11 @@ if __name__ == "__main__":
     plt.ion()
     cl=Profiler(World(10,20),AI_CLOCK(10,20))
     gr=Profiler(World(10,20),AI_GREEDY(10,20))
-    cl_40=Profiler(Wordl(40,20),AI_CLOCK(40,20))
+    cl_40=Profiler(World(40,20),AI_CLOCK(40,20))
 
     c=str(round(cl.w,2))
     g=str(round(gr.w,2))
-    p1=plt.loglog(range(I),cl.W,label='Clock',marker="H",markevery = [I-1])
+    p1=plt.loglog(range(I),cl.W,label='Clock',marker="P",markevery = [I-1])
     p2=plt.loglog(range(I),gr.W,label='Greedy',marker="o",markevery = [I-1])
     plt.xlabel('Iterations')
     plt.ylabel('People waiting per station')
@@ -425,7 +425,7 @@ if __name__ == "__main__":
     d=str(round(st.pstdev(cl.W),2))
     plt.xlabel('People waiting per station')
     plt.ylabel('Frequency')
-    plt.text(20, 0.010, r'$\mu = ' + c + ',\ \sigma = ' + d + '$')
+    plt.text(100, 0.006, r'$\mu = ' + c + ',\ \sigma = ' + d + '$')
     plt.hist(cl.W, normed=1)
     show_save_close('cl_histo')
     

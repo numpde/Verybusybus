@@ -2,8 +2,9 @@
 
 To run the online learning experiment:
 
- - Download reinlear.py, main.py, AI_RV.py, aux_offline.py, online.py
- - Run aux_offline.py
+ - Keras library is requiered
+ - Download main.py, AI_RV.py, aux_online.py, online.py
+ - Run aux_online.py
  - Run online.py
  - Wait
  

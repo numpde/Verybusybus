@@ -182,7 +182,9 @@ class AI_ON:
             # model.add(Dense(128, activation='relu', kernel_initializer='uniform', 
             #                     kernel_regularizer=regularizers.l2(0.000001)))
             model.add(Dense(self.N + self.C, kernel_initializer='normal', activation='softmax'))
-            self.model = model                     
+
+            model.compile(optimizer='adam', loss='categorical_crossentropy', metrics=['accuracy'])
+            self.model = model
 
     def step(self, b, B, Q, spre = 0):
         """
@@ -256,24 +258,27 @@ class AI_ON:
     
         with open("out_vloss.dat", "rb") as fo:   # Unpickling
             vloss = pickle.load(fo)
-            
-        for j in range (10000):    
-            
+
+        EPOCH_STEP = 10
+
+        for j in range(10000) :
+            print("TRAINING ROUND {}".format(j))
+
             mod = self.model
-            nepoch = (j+1)*10
+            nepoch = (j+1)*EPOCH_STEP
             X = []
             Y = []
             spre = 0
-                            
+
             for i in range(len(XB.X['S'])) :
                 (S, A, R) = (XB.X['S'][i], XB.X['A'][i], XB.X['R'][i])
-                            
+
                 M = Matricize(C, N, S['b'], S['B'], S['Q'])
-                    
+
                 X.append([spre] + list(M.BB) + list(M.QQ.flatten()))
-                        
+
                 # Moving forward?
-                if (A['f']): 
+                if A['f'] : 
                     #print(C.cs(A['s']))
                     #print(type(C.cs(A['s'])))
                     Y.append(np.hstack((M.cs(A['s']),np.zeros(N))))
@@ -289,24 +294,23 @@ class AI_ON:
             X = np.asarray(X)
             Y = np.asarray(Y)
             
-            mod.compile(optimizer='adam', loss='categorical_crossentropy', metrics=['accuracy'])
             
             if (j == 0) :
                 (acc0, loss0) = acc_and_loss(mod, X, Y) #before epoch 0
-                ai = Profiler(World(3,6), AI_ON(3,6))
+                ai = Profiler(World(C, N), self)
                 epps[0] = ai.w
                 acc[0] = acc0
                 loss[0] = loss0
                 
-            self.hist = mod.fit(X, Y, epochs=10, batch_size=20, verbose=2, validation_split=0.1)
-            (accn, lossn) = acc_and_loss(mod, X, Y) # after epoch 10
+            self.hist = mod.fit(X, Y, epochs=EPOCH_STEP, batch_size=20, verbose=2, validation_split=0.1)
+            (accn, lossn) = acc_and_loss(mod, X, Y) # after training
             
-            ai = Profiler(World(3,6), AI_ON(3,6))
+            ai = Profiler(World(C, N), self)
             
             acc[nepoch] = accn
             loss[nepoch] = lossn
-            vacc[nepoch - 10] = self.hist.history['val_acc'][0]
-            vloss[nepoch - 10] = self.hist.history['val_loss'][0]
+            vacc[nepoch - EPOCH_STEP] = self.hist.history['val_acc'][0]
+            vloss[nepoch - EPOCH_STEP] = self.hist.history['val_loss'][0]
             epps[nepoch] = ai.w
             # plot(ACC.keys(), ACC.values(), 'o--')
             # acc.append(self.hist.history['acc'][-1])
@@ -359,9 +363,6 @@ class School :
         assert (len(XB.X['S']) == len(XB.X['A']))
         assert (len(XB.X['A']) == len(XB.X['R']))
         
-        #for a in XB.X['A'] : print(a)
-        
-        #for _ in range(10) : 
         nav_learner.curriculum(wrd, self.nav_teacher, XB)
         
 
@@ -404,8 +405,7 @@ class Profiler:
 
         assert len(self.W)
         self.w = mean(self.W)
-        
-    
+
 
 def main_entry_train():
     # C = 3
@@ -419,29 +419,6 @@ def main_entry_train():
     school = School(wrd, nav_teacher)
     school.teach(nav_learner, I)
 
-    #report = Trainer(wrd, nav)
-        
-# Stats
-
-# RV learning
-# 
-# with open("out_Epps.dat", "rb") as fe:
-#     Epps = pickle.load(fe)
-# 
-# ai = Profiler(main.World(3,6),AI_ON(3,6))
-# 
-# Epps.append(ai.w)
-# 
-# with open("out_Epps.dat", "wb") as fe:   #Pickling
-#     pickle.dump(Epps, fe)
-#     
-# plt.plot(range(I),ai.W)
-# c=str(round(ai.w,2))
-# plt.xlabel('Iterations')
-# plt.ylabel('People waiting per station')
-# # plt.text(20, 4, r'$\mu = ' + c +'$')
-# plt.show()
-
 
 def show_save_close(filename) :
     plt.show()
@@ -451,7 +428,7 @@ def show_save_close(filename) :
 
 
 def drawex():
-    rui = Profiler(World(3,6),AI_RV(3,6))
+    rui = Profiler(World(C,N), AI_RV(C, N))
     plt.plot(range(len(rui.W)),rui.W)
     c=str(round(ai.w,2))
     plt.xlabel('Iterations')
@@ -559,7 +536,7 @@ def testaizoom():
     plt.ylabel('Frequency')
     plt.text(30, 0.25, r'$\mu = ' + c + ', \ \sigma = ' + d + ', n = ' + e + '$')
     plt.hist(epps, normed=1, bins = 16, range=[1,2])
-    show_save_close('outfigzoom_ai')
+    show_save_close('outfig_zoomai')
     
 def prepai(n):
     try:
@@ -567,13 +544,13 @@ def prepai(n):
             epps = pickle.load(fe)
     except:
         epps = []
-    
-    ai = AI_ON(3,6)    
+
+    ai = AI_ON(C, N)
     for k in range (n):
         print("{}/{}".format((k+1),n))
-        pr = Profiler(World(3,6),ai)
+        pr = Profiler(World(C, N), ai)
         epps.append(pr.w)
-        
+
     with open("pre_ai.dat", "wb") as fw:   #Pickling
         pickle.dump(epps, fw)
 
@@ -591,8 +568,7 @@ def plot_all():
     drawvloss()
     plt.clf()
     drawepps()
-            
-    
+
 from timeit import timeit
    
 if (__name__ == "__main__"):

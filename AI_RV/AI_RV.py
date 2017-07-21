@@ -371,7 +371,7 @@ I = 1000000
 plt.ion()
         
 plt.plot(range(I),rui.W)
-c=str(rui.w)
+c=str(round(rui.w,2))
 plt.xlabel('Iterations')
 plt.ylabel('People waiting per station')
 plt.text(100000, 1.8, r'$\mu = ' + c +'$')

@@ -422,7 +422,7 @@ plt.xlabel('On station relatif exceed waiting time')
 plt.ylabel('Frequency')
 plt.text(18, 0.175, r'$\mu = ' + c + ', \ \sigma = ' + d +'$')
 plt.hist(rui.srel, normed=1, range=[0,25], bins = 14)
-show_save_close('rui_stel_zoom')
+show_save_close('rui_srel_zoom')
 
 plt.clf()
 c=str(round(st.mean(rui.sabs),2))

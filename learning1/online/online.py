@@ -225,7 +225,7 @@ class AI_ON:
             # else :
                 # print("OK")
             m = Q[b].index(t)
-                
+
             # Collect original index
             M.append(M0.pop(m))
             # Remove from the (virtual) queue, and board onto (virtual) bus
@@ -262,6 +262,7 @@ class AI_ON:
         EPOCH_STEP = 10
 
         for j in range(10000) :
+            sys.stdout.flush()
             print("TRAINING ROUND {}".format(j))
 
             mod = self.model
@@ -289,8 +290,7 @@ class AI_ON:
                 # Not moving forward?
                 else :
                     Y.append(np.hstack((np.zeros(C),M.cm(A['m']))))
-                        
-                        
+
             X = np.asarray(X)
             Y = np.asarray(Y)
             
@@ -321,7 +321,7 @@ class AI_ON:
             mod.save('NN1.h5')
             
         with open("out_Epps.dat", "wb") as fe:   #Pickling
-            pickle.dump(epps, fe)    
+            pickle.dump(epps, fe)
             
         with open("out_acc.dat", "wb") as fp:   #Pickling
             pickle.dump(acc, fp)

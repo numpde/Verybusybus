@@ -312,12 +312,9 @@ class AI_ON:
             vacc[nepoch - EPOCH_STEP] = self.hist.history['val_acc'][0]
             vloss[nepoch - EPOCH_STEP] = self.hist.history['val_loss'][0]
             epps[nepoch] = ai.w
-            # plot(ACC.keys(), ACC.values(), 'o--')
-            # acc.append(self.hist.history['acc'][-1])
-            # loss.append(self.hist.history['loss'][-1])
-            # vacc.append(self.hist.history['val_acc'][-1])
-            # vloss.append(self.hist.history['val_loss'][-1])
-            
+
+            print("E[pps] = {}".format(ai.w))
+
             mod.save('NN1.h5')
             
         with open("out_Epps.dat", "wb") as fe:   #Pickling
@@ -392,10 +389,10 @@ class Profiler:
         # Main loop
         while wrd.i < self.I:
             try:
-                M,s = (nav.step(*wrd.look(),spre))
+                (M, s) = nav.step(*wrd.look(),spre)
                 wrd.move(*nav.step(*wrd.look(),spre))
             except:
-                M,s = (nav.step(*wrd.look()))
+                (M, s) = nav.step(*wrd.look())
                 wrd.move(*nav.step(*wrd.look()))
             # self.l[0].append(M)
             # self.l[1].append(s)

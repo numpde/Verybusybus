@@ -168,25 +168,16 @@ class AI_ON:
 			model = Sequential()
 			model.add(Dense(128, input_dim=(self.C + self.N**2+1), 
 								activation='relu', kernel_initializer='uniform', 
-								kernel_regularizer=regularizers.l2(0.000000001)))
-			model.add(Dense(128, activation='relu', kernel_initializer='uniform', 
-								kernel_regularizer=regularizers.l2(0.000000001)))
-			model.add(Dense(128, activation='relu', kernel_initializer='uniform', 
-								kernel_regularizer=regularizers.l2(0.000000001)))
-			model.add(Dense(128, activation='relu', kernel_initializer='uniform', 
-								kernel_regularizer=regularizers.l2(0.000000001)))
-			model.add(Dense(128, activation='relu', kernel_initializer='uniform', 
-								kernel_regularizer=regularizers.l2(0.000000001)))
-			# model.add(Dense(128, activation='relu', kernel_initializer='uniform', 
-			#					 kernel_regularizer=regularizers.l2(0.000001)))
-			# model.add(Dense(128, activation='relu', kernel_initializer='uniform', 
-			#					 kernel_regularizer=regularizers.l2(0.000001)))
+								kernel_regularizer=regularizers.l2(0.0000001)))
+			for _ in range(4) :
+				model.add(Dense(128, activation='relu', kernel_initializer='uniform', kernel_regularizer=regularizers.l2(0.0000001)))
+			
 			model.add(Dense(self.N + self.C, kernel_initializer='normal', activation='softmax'))
-
 			model.compile(optimizer='adam', loss='categorical_crossentropy', metrics=['accuracy'])
+
 			self.model = model
 
-	def step(self, b, B, Q, spre = 0):
+	def step(self, b, B, Q, spre = None):
 		"""
 		Note: b, B, Q are OK to modify
 		"""
@@ -202,34 +193,40 @@ class AI_ON:
 			# Suggestion by NN: what to do?
 			t = np.argmax(self.model.predict(X))
 			# print(self.model.predict(X))
-			# We are moving
-			if t < 3 :
+			
+			# We are moving?
+			if (t < 3) :
 			   s = [0, 1, -1] [t]
 			   break
 
 			# Cannot board any more people: move forward
 			if (len(B) >= self.C) : 
 				# Debug
-				s = 1
-				if spre != 0:
+				if (spre is not None) :
 					s = spre
+				else :
+					s = 1
 				# print('paila')
 				break
 			
-			# We are boarding
+			# We are boarding. Which passenger?
 			t = (t + b - 3) % self.N
+			
 			# Check if the suggestion is valid
 			if (not t in Q[b]) : 
 				# print("Oops")
 				break
-			# else :
+			else :
 				# print("OK")
+				pass
+			
 			m = Q[b].index(t)
 
 			# Collect original index
 			M.append(M0.pop(m))
 			# Remove from the (virtual) queue, and board onto (virtual) bus
 			B.append(Q[b].pop(m))
+		
 		#print(b, B0, B, s)
 		
 		# Print the stations
@@ -244,31 +241,31 @@ class AI_ON:
 	def train_RL(self, XB) :
 		# mod = self.model
 		
-		with open("out_Epps.dat", "rb") as fe:
-			epps = pickle.load(fe)
+		with open("out_Epps.dat", "rb") as f :
+			epps = pickle.load(f)
 		
-		with open("out_acc.dat", "rb") as fp:   # Unpickling
-			acc = pickle.load(fp)
+		with open("out_acc.dat", "rb") as f :
+			acc = pickle.load(f)
 	
-		with open("out_vacc.dat", "rb") as fo:   # Unpickling
-			vacc = pickle.load(fo)
+		with open("out_vacc.dat", "rb") as f :
+			vacc = pickle.load(f)
 			
-		with open("out_loss.dat", "rb") as fp:   # Unpickling
-			loss = pickle.load(fp)
+		with open("out_loss.dat", "rb") as f :
+			loss = pickle.load(f)
 	
-		with open("out_vloss.dat", "rb") as fo:   # Unpickling
-			vloss = pickle.load(fo)
+		with open("out_vloss.dat", "rb") as f :
+			vloss = pickle.load(f)
 
-		EPOCH_STEP = 10
 		
-		# Number of epochs
+		# Total running number of training epochs
 		nepoch = 0
+		# Number of epochs per training round
+		EPOCH_STEP = 10
 
 		for j in range(10000) :
 			sys.stdout.flush()
 			print("TRAINING ROUND {}".format(j))
 
-			mod = self.model
 			X = []
 			Y = []
 			spre = 0
@@ -298,16 +295,17 @@ class AI_ON:
 			
 			
 			if (j == 0) :
-				(acc0, loss0) = acc_and_loss(mod, X, Y) #before epoch 0
+				# before training
+				(acc0, loss0) = acc_and_loss(self.model, X, Y)
 				
 				acc[nepoch] = acc0
 				loss[nepoch] = loss0
 				epps[nepoch] = ( Profiler(World(C, N), self) ).w
-				
-			self.hist = mod.fit(X, Y, epochs=EPOCH_STEP, batch_size=20, verbose=2, validation_split=0.1)
+			
+			self.hist = self.model.fit(X, Y, epochs=EPOCH_STEP, batch_size=20, verbose=2, validation_split=0.1)
 			nepoch += EPOCH_STEP
 			
-			(accn, lossn) = acc_and_loss(mod, X, Y) # after training
+			(accn, lossn) = acc_and_loss(self.model, X, Y) # after training
 			
 			acc[nepoch] = accn
 			loss[nepoch] = lossn
@@ -318,25 +316,24 @@ class AI_ON:
 
 			print("E[pps] = {}".format(ai.w))
 
-			mod.save('NN1.h5')
+			self.model.save('NN1.h5')
 			
-		with open("out_Epps.dat", "wb") as fe:   #Pickling
-			pickle.dump(epps, fe)
+		with open("out_Epps.dat", "wb") as f :
+			pickle.dump(epps, f)
 			
-		with open("out_acc.dat", "wb") as fp:   #Pickling
-			pickle.dump(acc, fp)
+		with open("out_acc.dat", "wb") as f :
+			pickle.dump(acc, f)
 			
-		with open("out_vacc.dat", "wb") as fo:   #Pickling
-			pickle.dump(vacc, fo)
-			
-		with open("out_loss.dat", "wb") as fp:   #Pickling
-			pickle.dump(loss, fp)
-			
-		with open("out_vloss.dat", "wb") as fo:   #Pickling
-			pickle.dump(vloss, fo)
-			
-			
-		mod.save('NN1.h5')
+		with open("out_vacc.dat", "wb") as f :
+			pickle.dump(vacc, f)
+
+		with open("out_loss.dat", "wb") as f :
+			pickle.dump(loss, f)
+
+		with open("out_vloss.dat", "wb") as f :
+			pickle.dump(vloss, f)
+
+		self.model.save('NN1.h5')
 
 class School :
 	def __init__(self, wrd, nav_teacher) :

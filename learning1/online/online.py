@@ -260,13 +260,15 @@ class AI_ON:
             vloss = pickle.load(fo)
 
         EPOCH_STEP = 10
+        
+        # Number of epochs
+        nepoch = 0
 
         for j in range(10000) :
             sys.stdout.flush()
             print("TRAINING ROUND {}".format(j))
 
             mod = self.model
-            nepoch = (j+1)*EPOCH_STEP
             X = []
             Y = []
             spre = 0
@@ -297,21 +299,22 @@ class AI_ON:
             
             if (j == 0) :
                 (acc0, loss0) = acc_and_loss(mod, X, Y) #before epoch 0
-                ai = Profiler(World(C, N), self)
-                epps[0] = ai.w
-                acc[0] = acc0
-                loss[0] = loss0
+                
+                acc[nepoch] = acc0
+                loss[nepoch] = loss0
+                epps[nepoch] = ( Profiler(World(C, N), self) ).w
                 
             self.hist = mod.fit(X, Y, epochs=EPOCH_STEP, batch_size=20, verbose=2, validation_split=0.1)
-            (accn, lossn) = acc_and_loss(mod, X, Y) # after training
+            nepoch += EPOCH_STEP
             
-            ai = Profiler(World(C, N), self)
+            (accn, lossn) = acc_and_loss(mod, X, Y) # after training
             
             acc[nepoch] = accn
             loss[nepoch] = lossn
+            epps[nepoch] = ( Profiler(World(C, N), self) ).w
+            
             vacc[nepoch - EPOCH_STEP] = self.hist.history['val_acc'][0]
             vloss[nepoch - EPOCH_STEP] = self.hist.history['val_loss'][0]
-            epps[nepoch] = ai.w
 
             print("E[pps] = {}".format(ai.w))
 

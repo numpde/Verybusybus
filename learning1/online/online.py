@@ -28,7 +28,7 @@ from keras.layers	   import Dense, Dropout, Merge
 from main import mean
 from main import World
 
-from AI_RV import AI_RV
+from AI_RV import AI_RV as AI_Reference
 
 import pickle
 
@@ -145,7 +145,7 @@ class ExperienceBuffer :
 		return r
 
 
-class AI_ON:
+class AI_OnlineLearner:
 	"""
 	AI class
 	"""
@@ -161,7 +161,12 @@ class AI_ON:
 	
 	def init_model(self) :
 		try :
-			self.model = load_model('NN1.h5')
+			self.model = load_model("NN1.h5")
+			self.acc = pickle.load(open("out_acc.dat", "rb"))
+			self.loss = pickle.load(open("out_loss.dat", "rb"))
+			self.epps = pickle.load(open("out_Epps.dat", "rb"))
+			self.vacc = pickle.load(open("out_vacc.dat", "rb"))
+			self.vloss = pickle.load(open("out_vloss.dat", "rb"))
 			print("ReinLear load model OK")
 		except :
 			print("ReinLear building model")
@@ -176,6 +181,11 @@ class AI_ON:
 			model.compile(optimizer='adam', loss='categorical_crossentropy', metrics=['accuracy'])
 
 			self.model = model
+			self.acc = dict()
+			self.loss = dict()
+			self.epps = dict()
+			self.vacc = dict()
+			self.vloss = dict()
 
 	def step(self, b, B, Q, spre = None):
 		"""
@@ -234,113 +244,76 @@ class AI_ON:
 		
 		return M, s
 	
-	def curriculum(self, wrd, nav_teacher, XB) :
-		self.train_RL(XB)
+	def curriculum(self, wrd, nav_teacher, XB, epochs) :
+		self.train_RL(XB, epochs)
 		
 		
-	def train_RL(self, XB) :
-		# mod = self.model
+	def train_RL(self, XB, epochs) :
 		
-		with open("out_Epps.dat", "rb") as f :
-			epps = pickle.load(f)
+		X = []
+		Y = []
+		spre = 0
+
+		for i in range(len(XB.X['S'])) :
+			(S, A, R) = (XB.X['S'][i], XB.X['A'][i], XB.X['R'][i])
+
+			M = Matricize(C, N, S['b'], S['B'], S['Q'])
+
+			X.append([spre] + list(M.BB) + list(M.QQ.flatten()))
+
+			# Moving forward?
+			if A['f'] :
+				# YES
+				#print(C.cs(A['s']))
+				#print(type(C.cs(A['s'])))
+				Y.append(np.hstack((M.cs(A['s']), np.zeros(N))))
+				spre = [0, 1, -1][ np.argmax(M.cs(A['s'])) ]
+			
+			else :
+				# NO
+				Y.append(np.hstack((np.zeros(C), M.cm(A['m']))))
+
+		X = np.asarray(X)
+		Y = np.asarray(Y)
 		
-		with open("out_acc.dat", "rb") as f :
-			acc = pickle.load(f)
-	
-		with open("out_vacc.dat", "rb") as f :
-			vacc = pickle.load(f)
-			
-		with open("out_loss.dat", "rb") as f :
-			loss = pickle.load(f)
-	
-		with open("out_vloss.dat", "rb") as f :
-			vloss = pickle.load(f)
+		if (0 not in self.acc) :
+			# before training
+			(acc0, loss0) = acc_and_loss(self.model, X, Y)
+			self.acc[0] = acc0
+			self.loss[0] = loss0
+			self.epps[0] = ( Profiler(World(C, N), self) ).w
 
+		# total number of training epochs so far
+		nepoch = max(self.acc.keys())
+
+		self.hist = self.model.fit(X, Y, epochs=epochs, batch_size=20, verbose=2, validation_split=0.1)
+		nepoch += epochs
+
+		# after some training
+		(accn, lossn) = acc_and_loss(self.model, X, Y)
+		self.acc[nepoch] = accn
+		self.loss[nepoch] = lossn
+		self.epps[nepoch] = ( Profiler(World(C, N), self) ).w
+		#
+		self.vacc[nepoch - epochs] = self.hist.history['val_acc'][0]
+		self.vloss[nepoch - epochs] = self.hist.history['val_loss'][0]
 		
-		# Total running number of training epochs
-		nepoch = 0
-		# Number of epochs per training round
-		EPOCH_STEP = 10
-
-		for j in range(10000) :
-			sys.stdout.flush()
-			print("TRAINING ROUND {}".format(j))
-
-			X = []
-			Y = []
-			spre = 0
-
-			for i in range(len(XB.X['S'])) :
-				(S, A, R) = (XB.X['S'][i], XB.X['A'][i], XB.X['R'][i])
-
-				M = Matricize(C, N, S['b'], S['B'], S['Q'])
-
-				X.append([spre] + list(M.BB) + list(M.QQ.flatten()))
-
-				# Moving forward?
-				if A['f'] : 
-					#print(C.cs(A['s']))
-					#print(type(C.cs(A['s'])))
-					Y.append(np.hstack((M.cs(A['s']),np.zeros(N))))
-					spre = np.argmax(M.cs(A['s']))
-					if spre == 2:
-						spre = -1
-					
-				# Not moving forward?
-				else :
-					Y.append(np.hstack((np.zeros(C),M.cm(A['m']))))
-
-			X = np.asarray(X)
-			Y = np.asarray(Y)
-			
-			
-			if (j == 0) :
-				# before training
-				(acc0, loss0) = acc_and_loss(self.model, X, Y)
-				
-				acc[nepoch] = acc0
-				loss[nepoch] = loss0
-				epps[nepoch] = ( Profiler(World(C, N), self) ).w
-			
-			self.hist = self.model.fit(X, Y, epochs=EPOCH_STEP, batch_size=20, verbose=2, validation_split=0.1)
-			nepoch += EPOCH_STEP
-			
-			(accn, lossn) = acc_and_loss(self.model, X, Y) # after training
-			
-			acc[nepoch] = accn
-			loss[nepoch] = lossn
-			epps[nepoch] = ( Profiler(World(C, N), self) ).w
-			
-			vacc[nepoch - EPOCH_STEP] = self.hist.history['val_acc'][0]
-			vloss[nepoch - EPOCH_STEP] = self.hist.history['val_loss'][0]
-
-			print("E[pps] = {}".format(ai.w))
-
-			self.model.save('NN1.h5')
-			
-		with open("out_Epps.dat", "wb") as f :
-			pickle.dump(epps, f)
-			
-		with open("out_acc.dat", "wb") as f :
-			pickle.dump(acc, f)
-			
-		with open("out_vacc.dat", "wb") as f :
-			pickle.dump(vacc, f)
-
-		with open("out_loss.dat", "wb") as f :
-			pickle.dump(loss, f)
-
-		with open("out_vloss.dat", "wb") as f :
-			pickle.dump(vloss, f)
+		print("E[pps] = {}".format(self.epps[nepoch]))
 
 		self.model.save('NN1.h5')
+		pickle.dump(self.acc, open("out_acc.dat", "wb"))
+		pickle.dump(self.loss, open("out_loss.dat", "wb"))
+		pickle.dump(self.epps, open("out_Epps.dat", "wb"))
+		pickle.dump(self.vacc, open("out_vacc.dat", "wb"))
+		pickle.dump(self.vloss, open("out_vloss.dat", "wb"))
+
 
 class School :
 	def __init__(self, wrd, nav_teacher) :
 		self.wrd = wrd
 		self.nav_teacher = nav_teacher
 
-	def teach(self, nav_learner, I) :
+	def teach(self, nav_learner, I, epochs) :
 		assert (0 < I <= 1e6)
 		wrd = self.wrd
 		XB = ExperienceBuffer(wrd)
@@ -360,7 +333,7 @@ class School :
 		assert (len(XB.X['S']) == len(XB.X['A']))
 		assert (len(XB.X['A']) == len(XB.X['R']))
 		
-		nav_learner.curriculum(wrd, self.nav_teacher, XB)
+		nav_learner.curriculum(wrd, self.nav_teacher, XB, epochs)
 		
 
 class Profiler:
@@ -410,11 +383,19 @@ def main_entry_train():
 	# I = 1000
 	
 	random.seed(-1)
-	wrd = main.World(C, N)
-	nav_teacher = AI_RV(C, N)
-	nav_learner = AI_ON(C, N)
-	school = School(wrd, nav_teacher)
-	school.teach(nav_learner, I)
+	nav_teacher = AI_Reference(C, N)
+	nav_learner = AI_OnlineLearner(C, N)
+	
+	# Number of epochs per training round
+	epochs = 10
+	
+	for j in range(10) :
+		sys.stdout.flush()
+		print("TRAINING ROUND {}".format(j))
+		
+		wrd = main.World(C, N)
+		school = School(wrd, nav_teacher)
+		school.teach(nav_learner, I, epochs)
 
 
 def show_save_close(filename) :
@@ -425,7 +406,7 @@ def show_save_close(filename) :
 
 
 def drawex():
-	rui = Profiler(World(C,N), AI_RV(C, N))
+	rui = Profiler(World(C,N), AI_Reference(C, N))
 	plt.plot(range(len(rui.W)),rui.W)
 	c=str(round(ai.w,2))
 	plt.xlabel('Iterations')
@@ -542,7 +523,7 @@ def prepai(n):
 	except:
 		epps = []
 
-	ai = AI_ON(C, N)
+	ai = AI_OnlineLearner(C, N)
 	for k in range (n):
 		print("{}/{}".format((k+1),n))
 		pr = Profiler(World(C, N), ai)

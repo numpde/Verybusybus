@@ -178,7 +178,7 @@ class AI_OnlineLearner:
 				model.add(Dense(128, activation='relu', kernel_initializer='uniform', kernel_regularizer=regularizers.l2(0.0000001)))
 			
 			model.add(Dense(self.N + self.C, kernel_initializer='normal', activation='softmax'))
-			model.compile(optimizer='adam', loss='categorical_crossentropy', metrics=['accuracy'])
+			model.compile(optimizer='sgd', loss='categorical_crossentropy', metrics=['accuracy'])
 
 			self.model = model
 			self.acc = dict()

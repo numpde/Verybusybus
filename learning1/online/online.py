@@ -389,7 +389,7 @@ def main_entry_train():
 	# Number of epochs per training round
 	epochs = 10
 	
-	for j in range(10) :
+	for j in range(10000) :
 		sys.stdout.flush()
 		print("TRAINING ROUND {}".format(j))
 		

@@ -2,7 +2,7 @@
 
 To run the online learning experiment:
 
- - Keras library is requiered
+ - Install the Keras library (with tensorflow or theano)
  - Download main.py, AI_RV.py, aux_online.py, online.py
  - Run aux_online.py
  - Run online.py

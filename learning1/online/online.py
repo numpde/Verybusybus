@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
 # Author: Roman Andreev and Alejandro Caicedo
-#		 incl parts by RV
+#		  References code by Rui Viana (AI_RV)
 
 import tensorflow as tf
 
@@ -20,10 +20,10 @@ import random
 import matplotlib.pyplot as plt
 import numpy as np
 
-from keras.models	   import Sequential, load_model
-from keras.optimizers   import Adam
-from keras import regularizers
-from keras.layers	   import Dense, Dropout, Merge
+from keras.models     import Sequential, load_model
+from keras.optimizers import Adam
+from keras            import regularizers
+from keras.layers     import Dense, Dropout, Merge
 
 from main import mean
 from main import World
@@ -393,7 +393,7 @@ def main_entry_train():
 		sys.stdout.flush()
 		print("TRAINING ROUND {}".format(j))
 		
-		wrd = main.World(C, N)
+		wrd = World(C, N)
 		school = School(wrd, nav_teacher)
 		school.teach(nav_learner, I, epochs)
 

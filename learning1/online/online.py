@@ -1,9 +1,15 @@
-#!/usr/bin/env python3
+1#!/usr/bin/env python3
 
 # Author: Roman Andreev and Alejandro Caicedo
-#		  References code by Rui Viana (AI_RV)
+#         References code by Rui Viana (AI_RV)
 
-import tensorflow as tf
+
+# Parameters
+
+TRAINING_ROUNDS = 1000
+TEST_ROUNDS = 512
+NN_FILE = "NN1.h5"
+
 
 # Disable / Restore sys.stderr(..)
 import sys, os
@@ -161,7 +167,7 @@ class AI_OnlineLearner:
 	
 	def init_model(self) :
 		try :
-			self.model = load_model("NN1.h5")
+			self.model = load_model(NN_FILE)
 			self.acc = pickle.load(open("out_acc.dat", "rb"))
 			self.loss = pickle.load(open("out_loss.dat", "rb"))
 			self.epps = pickle.load(open("out_Epps.dat", "rb"))
@@ -300,7 +306,7 @@ class AI_OnlineLearner:
 		
 		print("E[pps] = {}".format(self.epps[nepoch]))
 
-		self.model.save('NN1.h5')
+		self.model.save(NN_FILE)
 		pickle.dump(self.acc, open("out_acc.dat", "wb"))
 		pickle.dump(self.loss, open("out_loss.dat", "wb"))
 		pickle.dump(self.epps, open("out_Epps.dat", "wb"))
@@ -389,9 +395,9 @@ def main_entry_train():
 	# Number of epochs per training round
 	epochs = 10
 	
-	for j in range(10000) :
+	for j in range(TRAINING_ROUNDS) :
 		sys.stdout.flush()
-		print("TRAINING ROUND {}".format(j))
+		print("TRAINING ROUND {}/{}".format(1+j, TRAINING_ROUNDS))
 		
 		wrd = World(C, N)
 		school = School(wrd, nav_teacher)
@@ -490,7 +496,7 @@ def drawepps():
 	plt.text(700,65, ' min value = ' + d )
 	show_save_close('outfig_epps')
 		
-def testai():
+def drawtestai():
 	with open("pre_ai.dat", "rb") as fe:
 		epps = pickle.load(fe)
 	c=str(round(st.mean(epps),2))
@@ -503,7 +509,7 @@ def testai():
 	plt.hist(epps, normed=1, bins = 16)
 	show_save_close('outfig_ai')
 	
-def testaizoom():
+def drawtestaizoom():
 	with open("pre_ai.dat", "rb") as fe:
 		epps = pickle.load(fe)
 	c=str(round(st.mean(epps),2))
@@ -516,7 +522,7 @@ def testaizoom():
 	plt.hist(epps, normed=1, bins = 16, range=[1,2])
 	show_save_close('outfig_zoomai')
 	
-def prepai(n):
+def performance_test(n):
 	try:
 		with open("pre_ai.dat", "rb") as fe:
 			epps = pickle.load(fe)
@@ -546,18 +552,30 @@ def plot_all():
 	drawvloss()
 	plt.clf()
 	drawepps()
+	plt.clf()
+	drawtestai()
+	plt.clf()
+	drawtestaizoom()
 
 from timeit import timeit
-   
+import os.path
+
 if (__name__ == "__main__"):
 	#tf_sess = tf.Session()
 	#keras_backend.set_session(tf_sess)
 
-	t = timeit(main_entry_train, number=1)
-	print("Time:", t, "(sec)")
-	
-	plot_all()
-	
-	prepai(512)
-	testai()
-	testaizoom()
+	if os.path.isfile(NN_FILE) :
+		print("NN file " + NN_FILE + " found. Running the plotting routines.")
+		print("")
+		
+		plot_all()
+
+	else :
+		print("NN file " + NN_FILE + " not found. Running the learning routines.")
+		print("")
+		
+		t = timeit(main_entry_train, number=1)
+		print("Time:", t, "(sec)")
+
+		print("Now running the performance test.")
+		performance_test(TEST_ROUNDS)

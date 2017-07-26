@@ -11,6 +11,7 @@ TEST_ROUNDS = 512
 NN_FILE = "NN1.h5"
 
 
+
 # Disable / Restore sys.stderr(..)
 import sys, os
 def stop_stderr(): sys.stderr = open(os.devnull, 'w')

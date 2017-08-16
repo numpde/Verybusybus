@@ -427,11 +427,11 @@ def drawacc():
 		acc = pickle.load(infile)
 	list0 = sorted(acc.items())
 	x,y = zip(*list0)
-	plt.plot(x, y, 'o--')
+	plt.plot(x, y, 'o--',markevery = [-1])
 	plt.xlabel('Epochs')
 	plt.ylabel('Accuracy')
 	c = str(round(y[-1],4))
-	plt.text(700,0.3, ' last value = ' + c )
+	plt.text(7000,0.8, ' last value = ' + c )
 	show_save_close('outfig_acc')
 	
 def drawlogacc():
@@ -440,11 +440,11 @@ def drawlogacc():
 	list0 = sorted(acc.items())
 	x,y = zip(*list0)
 	ylog = [-np.log(1-v) for v in y]
-	plt.plot(x, ylog, 'o--')
+	plt.plot(x, ylog, 'o--',markevery = [-1])
 	plt.xlabel('Epochs')
 	plt.ylabel('-log(1 - Accuracy)')
 	c = str(round(ylog[-1],4))
-	plt.text(700,0.3, ' last value = ' + c )
+	plt.text(7000,2, ' last value = ' + c )
 	show_save_close('outfig_logacc')
 	
 def drawloss():
@@ -452,11 +452,11 @@ def drawloss():
 		loss = pickle.load(infile)
 	list0 = sorted(loss.items())
 	x,y = zip(*list0)
-	plt.plot(x, y, 'o--')
+	plt.plot(x, y, 'o--', markevery = [-1])
 	plt.xlabel('Epochs')
 	plt.ylabel('Loss')
 	c = str(round(y[-1],4))
-	plt.text(700,0.5, ' last value = ' + c )
+	plt.text(7000,1.5, ' last value = ' + c )
 	show_save_close('outfig_loss')
 	
 def drawvacc():
@@ -464,11 +464,11 @@ def drawvacc():
 		vacc = pickle.load(infile)
 	list0 = sorted(vacc.items())
 	x,y = zip(*list0)
-	plt.plot(x, y, 'o--')
+	plt.plot(x, y, 'o--', markevery = [-1])
 	plt.xlabel('Epochs')
 	plt.ylabel('Validation Accuracy')
 	c = str(round(y[-1],4))
-	plt.text(700,0.9, ' last value = ' + c )
+	plt.text(7000,0.6, ' last value = ' + c )
 	show_save_close('outfig_vacc')
 	
 def drawvloss():
@@ -476,11 +476,11 @@ def drawvloss():
 		vloss = pickle.load(infile)
 	list0 = sorted(vloss.items())
 	x,y = zip(*list0)
-	plt.plot(x, y, 'o--')
+	plt.plot(x, y, 'o--',markevery = [-1])
 	plt.xlabel('Epochs')
 	plt.ylabel('Validation Loss')
 	c = str(round(y[-1],4))
-	plt.text(700,0.6, ' last value = ' + c )
+	plt.text(7000,1.5, ' last value = ' + c )
 	show_save_close('outfig_vloss')
 	
 def drawepps():
@@ -488,13 +488,13 @@ def drawepps():
 		epps = pickle.load(infile) 
 	list0 = sorted(epps.items())
 	x,y = zip(*list0)
-	plt.plot(x, y, 'o--')
+	plt.plot(x, y, 'o--', markevery = [-1])
 	plt.xlabel('Epochs')
 	plt.ylabel('E[pps]')
 	c = str(round(y[-1],4))
-	plt.text(700,75, ' last value = ' + c )
+	plt.text(7000, 80, ' last value = ' + c )
 	d = str(round(min(y),4))
-	plt.text(700,65, ' min value = ' + d )
+	plt.text(7000, 70, ' min value = ' + d )
 	show_save_close('outfig_epps')
 		
 def drawtestai():
@@ -506,7 +506,7 @@ def drawtestai():
 	plt.clf()
 	plt.xlabel('E[pps]')
 	plt.ylabel('Frequency')
-	plt.text(30, 0.25, r'$\mu = ' + c + ', \ \sigma = ' + d + ', n = ' + e + '$')
+	plt.text(50, 0.14, r'$\mu = ' + c + ', \ \sigma = ' + d + '$')
 	plt.hist(epps, normed=1, bins = 16)
 	show_save_close('outfig_ai')
 	
@@ -519,7 +519,7 @@ def drawtestaizoom():
 	plt.clf()
 	plt.xlabel('E[pps]')
 	plt.ylabel('Frequency')
-	plt.text(30, 0.25, r'$\mu = ' + c + ', \ \sigma = ' + d + ', n = ' + e + '$')
+	plt.text(1.7, 8, r'$\mu = ' + c + ', \ \sigma = ' + d + '$')
 	plt.hist(epps, normed=1, bins = 16, range=[1,2])
 	show_save_close('outfig_zoomai')
 	
